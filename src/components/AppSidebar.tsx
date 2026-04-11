@@ -22,21 +22,20 @@ const items = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
 
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
         <div className="px-4 py-5">
           {!collapsed ? (
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-sm">D+</span>
               </div>
               <span className="font-semibold text-foreground text-lg tracking-tight">DentFlow</span>
             </div>
           ) : (
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center mx-auto">
+            <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center mx-auto">
               <span className="text-primary-foreground font-bold text-sm">D+</span>
             </div>
           )}
@@ -51,10 +50,10 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="hover:bg-accent/60 transition-colors"
+                      className="hover:bg-accent/60 transition-colors rounded-xl py-3 text-base"
                       activeClassName="bg-primary/10 text-primary font-medium"
                     >
-                      <item.icon className="mr-2 h-4 w-4" />
+                      <item.icon className="mr-3 h-5 w-5" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -63,18 +62,6 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {/* Future placeholders */}
-        {!collapsed && (
-          <div className="mt-auto px-4 pb-4 space-y-2">
-            <div className="rounded-lg bg-accent/50 p-3 text-xs text-muted-foreground">
-              <p className="font-medium text-accent-foreground mb-1">Coming Soon</p>
-              <p>🎤 Voice notes</p>
-              <p>💬 WhatsApp reminders</p>
-              <p>🤖 AI assistant</p>
-            </div>
-          </div>
-        )}
       </SidebarContent>
     </Sidebar>
   );

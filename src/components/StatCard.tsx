@@ -6,23 +6,19 @@ interface Props {
   title: string;
   value: string | number;
   icon: LucideIcon;
-  trend?: string;
   className?: string;
 }
 
-export function StatCard({ title, value, icon: Icon, trend, className }: Props) {
+export function StatCard({ title, value, icon: Icon, className }: Props) {
   return (
     <Card className={cn("animate-fade-in", className)}>
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-semibold mt-1">{value}</p>
-            {trend && <p className="text-xs text-success mt-1">{trend}</p>}
-          </div>
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <Icon className="h-5 w-5 text-primary" />
-          </div>
+      <CardContent className="p-4 flex items-center gap-3">
+        <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+          <Icon className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">{title}</p>
+          <p className="text-xl font-bold">{value}</p>
         </div>
       </CardContent>
     </Card>
