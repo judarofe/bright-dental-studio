@@ -8,8 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useAppStore } from "@/data/StoreContext";
 import { Appointment, AppointmentStatus } from "@/data/store";
-import { StatusBadge } from "./StatusBadge";
-import { Trash2 } from "lucide-react";
+import { Trash2, UserPlus } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -26,13 +25,11 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
   const [patientId, setPatientId] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [duration, setDuration] = useState(30);
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<AppointmentStatus>("pending");
   const [paid, setPaid] = useState(false);
   const [amount, setAmount] = useState(0);
 
-  // New patient inline
   const [showNewPatient, setShowNewPatient] = useState(false);
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
@@ -42,7 +39,6 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
       setPatientId(appointment.patientId);
       setDate(appointment.date);
       setTime(appointment.time);
-      setDuration(appointment.duration);
       setNotes(appointment.notes);
       setStatus(appointment.status);
       setPaid(appointment.paid);
@@ -51,9 +47,8 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
       setPatientId("");
       setDate(defaultDate || new Date().toISOString().split("T")[0]);
       setTime(defaultTime || "09:00");
-      setDuration(30);
       setNotes("");
-      setStatus("pending");
+      setStatus("confirmed");
       setPaid(false);
       setAmount(0);
     }
@@ -70,7 +65,7 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
     }
     if (!pid) return;
 
-    const data = { patientId: pid, date, time, duration, notes, status, paid, amount };
+    const data = { patientId: pid, date, time, duration: 30, notes, status, paid, amount };
     if (isEdit && appointment) {
       store.updateAppointment(appointment.id, data);
     } else {
@@ -88,100 +83,112 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Appointment" : "New Appointment"}</DialogTitle>
+          <DialogTitle className="text-lg">{isEdit ? "Edit Appointment" : "New Appointment"}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 mt-2">
-          {/* Patient */}
+        <div className="space-y-5 mt-1">
+          {/* Patient — simplified */}
           {!showNewPatient ? (
-            <div className="space-y-1.5">
-              <Label>Patient</Label>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Patient</Label>
               <Select value={patientId} onValueChange={setPatientId}>
-                <SelectTrigger><SelectValue placeholder="Select patient" /></SelectTrigger>
+                <SelectTrigger className="h-11 rounded-xl text-base">
+                  <SelectValue placeholder="Choose patient..." />
+                </SelectTrigger>
                 <SelectContent>
                   {store.patients.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    <SelectItem key={p.id} value={p.id} className="text-base py-2">{p.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => setShowNewPatient(true)}>
-                + Create new patient
-              </Button>
+              <button
+                onClick={() => setShowNewPatient(true)}
+                className="flex items-center gap-1.5 text-sm text-primary hover:underline"
+              >
+                <UserPlus className="h-3.5 w-3.5" /> Add new patient
+              </button>
             </div>
           ) : (
-            <div className="space-y-2 rounded-lg border p-3">
-              <Label className="text-xs text-muted-foreground">New Patient</Label>
-              <Input placeholder="Name" value={newName} onChange={(e) => setNewName(e.target.value)} />
-              <Input placeholder="Phone" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
-              <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => setShowNewPatient(false)}>
-                ← Select existing patient
-              </Button>
+            <div className="space-y-3 rounded-xl border p-4 bg-accent/30">
+              <p className="text-sm font-medium">New Patient</p>
+              <Input placeholder="Full name" value={newName} onChange={(e) => setNewName(e.target.value)} className="h-11 rounded-xl text-base" />
+              <Input placeholder="Phone number" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} className="h-11 rounded-xl text-base" />
+              <button onClick={() => setShowNewPatient(false)} className="text-sm text-primary hover:underline">
+                ← Choose existing patient
+              </button>
             </div>
           )}
 
-          {/* Date & Time */}
+          {/* Date & Time — side by side */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Date</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Date</Label>
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-11 rounded-xl" />
             </div>
-            <div className="space-y-1.5">
-              <Label>Time</Label>
-              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-            </div>
-          </div>
-
-          {/* Duration & Amount */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Duration (min)</Label>
-              <Input type="number" value={duration} onChange={(e) => setDuration(+e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Amount (€)</Label>
-              <Input type="number" value={amount} onChange={(e) => setAmount(+e.target.value)} />
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Time</Label>
+              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-11 rounded-xl" />
             </div>
           </div>
 
-          {/* Notes */}
-          <div className="space-y-1.5">
-            <Label>Notes</Label>
-            <Textarea placeholder="Treatment notes..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+          {/* Amount */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Amount (€)</Label>
+            <Input type="number" value={amount} onChange={(e) => setAmount(+e.target.value)} className="h-11 rounded-xl text-base" placeholder="0" />
           </div>
 
-          {/* Status & Paid */}
-          <div className="grid grid-cols-2 gap-3 items-end">
-            <div className="space-y-1.5">
-              <Label>Status</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as AppointmentStatus)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="noshow">No-show</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2 pb-1">
+          {/* Notes — optional, collapsed feel */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Notes <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <Textarea placeholder="e.g. cleaning, crown, follow-up..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="rounded-xl resize-none" />
+          </div>
+
+          {/* Paid toggle — only in edit mode, simple */}
+          {isEdit && (
+            <div className="flex items-center justify-between rounded-xl border p-3">
+              <Label className="text-sm font-medium">Paid</Label>
               <Switch checked={paid} onCheckedChange={setPaid} />
-              <Label className="text-sm">Paid</Label>
             </div>
-          </div>
+          )}
 
-          {/* Actions */}
-          <div className="flex justify-between pt-2">
+          {/* Status — only in edit mode */}
+          {isEdit && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Status</Label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {(["pending", "confirmed", "completed", "noshow"] as AppointmentStatus[]).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setStatus(s)}
+                    className={`py-2 px-1 rounded-lg text-xs font-medium transition-all ${
+                      status === s
+                        ? s === "pending" ? "bg-status-pending text-warning-foreground"
+                        : s === "confirmed" ? "bg-status-confirmed text-primary-foreground"
+                        : s === "completed" ? "bg-status-completed text-success-foreground"
+                        : "bg-status-noshow text-destructive-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {s === "noshow" ? "No-show" : s.charAt(0).toUpperCase() + s.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Actions — big, clear buttons */}
+          <div className="flex gap-2 pt-1">
             {isEdit && (
-              <Button variant="ghost" size="sm" className="text-destructive" onClick={handleDelete}>
-                <Trash2 className="h-4 w-4 mr-1" /> Delete
+              <Button variant="ghost" size="icon" className="text-destructive shrink-0 rounded-xl" onClick={handleDelete}>
+                <Trash2 className="h-4 w-4" />
               </Button>
             )}
-            <div className="flex gap-2 ml-auto">
-              <Button variant="outline" onClick={onClose}>Cancel</Button>
-              <Button onClick={handleSave}>{isEdit ? "Save" : "Create"}</Button>
-            </div>
+            <Button variant="outline" onClick={onClose} className="flex-1 h-11 rounded-xl">Cancel</Button>
+            <Button onClick={handleSave} className="flex-1 h-11 rounded-xl text-base font-medium">
+              {isEdit ? "Save" : "Create Appointment"}
+            </Button>
           </div>
         </div>
       </DialogContent>

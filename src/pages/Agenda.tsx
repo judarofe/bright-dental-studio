@@ -1,52 +1,47 @@
 import { useState, useMemo } from "react";
 import { useAppStore } from "@/data/StoreContext";
 import { AppointmentModal } from "@/components/AppointmentModal";
-import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, CheckCircle2, CircleDollarSign } from "lucide-react";
 import { Appointment } from "@/data/store";
 import { cn } from "@/lib/utils";
 
-const HOURS = Array.from({ length: 12 }, (_, i) => i + 8); // 8:00–19:00
-
-function getWeekDays(date: Date): Date[] {
-  const day = date.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  const monday = new Date(date);
-  monday.setDate(date.getDate() + diff);
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    return d;
-  });
-}
+const HOURS = Array.from({ length: 11 }, (_, i) => i + 8); // 8:00–18:00
 
 function fmt(d: Date) {
   return d.toISOString().split("T")[0];
 }
 
+const STATUS_BG: Record<string, string> = {
+  pending: "border-l-status-pending bg-status-pending/8",
+  confirmed: "border-l-status-confirmed bg-status-confirmed/8",
+  completed: "border-l-status-completed bg-status-completed/8",
+  noshow: "border-l-status-noshow bg-status-noshow/8",
+};
+
 export default function Agenda() {
   const store = useAppStore();
-  const [view, setView] = useState<"week" | "day">("week");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
-  const [defaultDate, setDefaultDate] = useState<string>("");
-  const [defaultTime, setDefaultTime] = useState<string>("");
+  const [defaultDate, setDefaultDate] = useState("");
+  const [defaultTime, setDefaultTime] = useState("");
 
   const today = fmt(new Date());
-  const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
+  const dateStr = fmt(currentDate);
+  const appts = store.getAppointmentsForDate(dateStr);
+  const isToday = dateStr === today;
 
   const navigate = (dir: number) => {
     const d = new Date(currentDate);
-    d.setDate(d.getDate() + (view === "week" ? dir * 7 : dir));
+    d.setDate(d.getDate() + dir);
     setCurrentDate(d);
   };
 
-  const openNew = (date?: string, time?: string) => {
+  const openNew = (time?: string) => {
     setSelectedAppt(null);
-    setDefaultDate(date || fmt(currentDate));
+    setDefaultDate(dateStr);
     setDefaultTime(time || "09:00");
     setModalOpen(true);
   };
@@ -56,116 +51,118 @@ export default function Agenda() {
     setModalOpen(true);
   };
 
-  const renderDayColumn = (date: Date) => {
-    const dateStr = fmt(date);
-    const appts = store.getAppointmentsForDate(dateStr);
-    const isToday = dateStr === today;
+  const markDone = (e: React.MouseEvent, a: Appointment) => {
+    e.stopPropagation();
+    store.updateAppointment(a.id, { status: "completed" });
+  };
 
-    return (
-      <div key={dateStr} className="flex-1 min-w-0">
-        <div className={cn(
-          "text-center py-2 text-sm border-b sticky top-0 bg-card z-10",
-          isToday && "text-primary font-semibold"
-        )}>
-          <div className="text-xs text-muted-foreground">{date.toLocaleDateString("en-US", { weekday: "short" })}</div>
-          <div className={cn("text-lg", isToday && "bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto")}>
-            {date.getDate()}
-          </div>
-        </div>
-
-        <div className="relative">
-          {HOURS.map((h) => (
-            <div
-              key={h}
-              className="h-16 border-b border-dashed cursor-pointer hover:bg-accent/30 transition-colors"
-              onClick={() => openNew(dateStr, `${String(h).padStart(2, "0")}:00`)}
-            />
-          ))}
-
-          {appts.map((a) => {
-            const [hh, mm] = a.time.split(":").map(Number);
-            const top = (hh - 8) * 64 + (mm / 60) * 64;
-            const height = Math.max((a.duration / 60) * 64, 24);
-            const statusColor = {
-              pending: "border-l-status-pending bg-status-pending/10",
-              confirmed: "border-l-status-confirmed bg-status-confirmed/10",
-              completed: "border-l-status-completed bg-status-completed/10",
-              noshow: "border-l-status-noshow bg-status-noshow/10",
-            }[a.status];
-
-            const patient = store.getPatient(a.patientId);
-            return (
-              <button
-                key={a.id}
-                onClick={(e) => { e.stopPropagation(); openEdit(a); }}
-                className={cn(
-                  "absolute left-0.5 right-0.5 rounded-md border-l-[3px] px-1.5 py-1 text-left overflow-hidden hover:shadow-md transition-shadow",
-                  statusColor
-                )}
-                style={{ top: `${top}px`, height: `${height}px` }}
-              >
-                <p className="text-[11px] font-medium truncate">{patient?.name}</p>
-                {height > 32 && <p className="text-[10px] text-muted-foreground truncate">{a.time} · {a.notes}</p>}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    );
+  const markPaid = (e: React.MouseEvent, a: Appointment) => {
+    e.stopPropagation();
+    store.updateAppointment(a.id, { paid: true });
   };
 
   return (
-    <div className="space-y-4 max-w-7xl">
-      {/* Controls */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
+    <div className="space-y-4 max-w-3xl mx-auto">
+      {/* Date navigation — simple day-by-day */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="rounded-xl">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())}>Today</Button>
-          <Button variant="outline" size="icon" onClick={() => navigate(1)}>
+          <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())} className="rounded-xl">
+            Today
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => navigate(1)} className="rounded-xl">
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <h2 className="text-lg font-semibold ml-2">
-            {currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-          </h2>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex border rounded-lg overflow-hidden">
-            <button
-              onClick={() => setView("day")}
-              className={cn("px-3 py-1.5 text-sm transition-colors", view === "day" ? "bg-primary text-primary-foreground" : "hover:bg-accent")}
-            >Day</button>
-            <button
-              onClick={() => setView("week")}
-              className={cn("px-3 py-1.5 text-sm transition-colors", view === "week" ? "bg-primary text-primary-foreground" : "hover:bg-accent")}
-            >Week</button>
-          </div>
-          <Button onClick={() => openNew()} className="gap-1.5">
-            <Plus className="h-4 w-4" /> New
-          </Button>
-        </div>
+
+        <h2 className="text-lg font-semibold">
+          {isToday && <span className="text-primary mr-1">Today ·</span>}
+          {currentDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+        </h2>
+
+        <Button onClick={() => openNew()} className="gap-1.5 rounded-xl" size="sm">
+          <Plus className="h-4 w-4" /> New
+        </Button>
       </div>
 
-      {/* Calendar grid */}
-      <Card>
-        <CardContent className="p-0 overflow-auto">
-          <div className="flex min-w-[600px]">
-            {/* Time labels */}
-            <div className="w-14 shrink-0 border-r">
-              <div className="h-[52px] border-b" />
-              {HOURS.map((h) => (
-                <div key={h} className="h-16 border-b border-dashed px-2 text-xs text-muted-foreground flex items-start pt-0.5">
-                  {String(h).padStart(2, "0")}:00
-                </div>
-              ))}
+      {/* Day view — simple list instead of complex grid */}
+      <Card className="overflow-hidden">
+        <CardContent className="p-0">
+          {appts.length === 0 ? (
+            <div className="py-16 text-center">
+              <p className="text-muted-foreground">No appointments this day</p>
+              <Button variant="link" onClick={() => openNew()} className="mt-2">+ Add one</Button>
             </div>
+          ) : (
+            <div className="divide-y">
+              {appts.map((a) => {
+                const patient = store.getPatient(a.patientId);
+                const isDone = a.status === "completed" || a.status === "noshow";
+                return (
+                  <div
+                    key={a.id}
+                    onClick={() => openEdit(a)}
+                    className={cn(
+                      "flex items-center gap-4 p-4 cursor-pointer hover:bg-accent/30 transition-colors border-l-4",
+                      STATUS_BG[a.status],
+                      isDone && "opacity-50"
+                    )}
+                  >
+                    <div className="text-xl font-bold w-16 shrink-0 text-center">{a.time}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className={cn("font-medium text-base", isDone && "line-through")}>{patient?.name}</p>
+                      <p className="text-sm text-muted-foreground truncate">{a.notes}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="font-semibold">€{a.amount}</p>
+                      {a.paid && <p className="text-xs text-success">✓ Paid</p>}
+                    </div>
+                    {!isDone && (
+                      <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <button onClick={(e) => markDone(e, a)} className="h-10 w-10 rounded-xl bg-success/10 hover:bg-success/20 flex items-center justify-center" title="Done">
+                          <CheckCircle2 className="h-5 w-5 text-success" />
+                        </button>
+                        {!a.paid && (
+                          <button onClick={(e) => markPaid(e, a)} className="h-10 w-10 rounded-xl bg-primary/10 hover:bg-primary/20 flex items-center justify-center" title="Paid">
+                            <CircleDollarSign className="h-5 w-5 text-primary" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-            {/* Day columns */}
-            {view === "week"
-              ? weekDays.map((d) => renderDayColumn(d))
-              : renderDayColumn(currentDate)
-            }
+      {/* Quick hour slots to tap and create */}
+      <Card>
+        <CardContent className="p-3">
+          <p className="text-xs text-muted-foreground mb-2 font-medium">Tap a time slot to book:</p>
+          <div className="flex flex-wrap gap-1.5">
+            {HOURS.map((h) => {
+              const timeStr = `${String(h).padStart(2, "0")}:00`;
+              const hasAppt = appts.some((a) => a.time.startsWith(String(h).padStart(2, "0")));
+              return (
+                <button
+                  key={h}
+                  onClick={() => openNew(timeStr)}
+                  disabled={hasAppt}
+                  className={cn(
+                    "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    hasAppt
+                      ? "bg-muted text-muted-foreground/40 cursor-not-allowed"
+                      : "bg-accent hover:bg-primary/10 hover:text-primary"
+                  )}
+                >
+                  {timeStr}
+                </button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
