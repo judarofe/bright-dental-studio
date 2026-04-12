@@ -20,13 +20,13 @@ export default function Payments() {
 
   return (
     <div className="space-y-4 max-w-4xl">
-      <h1 className="text-2xl font-semibold">Payments</h1>
+      <h1 className="text-2xl font-semibold">Pagos</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <StatCard title="Total Collected" value={`€${total}`} icon={DollarSign} />
+        <StatCard title="Total Cobrado" value={`€${total}`} icon={DollarSign} />
         <div className="flex items-end">
           <div className="space-y-1.5 w-full">
-            <label className="text-sm text-muted-foreground">Filter by date</label>
+            <label className="text-sm text-muted-foreground">Filtrar por fecha</label>
             <Input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} />
           </div>
         </div>
@@ -34,11 +34,11 @@ export default function Payments() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium">Paid Appointments</CardTitle>
+          <CardTitle className="text-base font-medium">Citas Pagadas</CardTitle>
         </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-6">No payments found</p>
+            <p className="text-muted-foreground text-sm text-center py-6">No se encontraron pagos</p>
           ) : (
             <div className="space-y-2">
               {filtered.map((a) => {
@@ -50,7 +50,7 @@ export default function Payments() {
                   >
                     <span className="text-sm w-24 shrink-0 text-muted-foreground">{a.date}</span>
                     <span className="text-sm w-14 text-muted-foreground">{a.time}</span>
-                    <span className="flex-1 text-sm font-medium truncate">{patient?.name || "Unknown"}</span>
+                    <span className="flex-1 text-sm font-medium truncate">{patient?.name || "Desconocido"}</span>
                     <StatusBadge status={a.status} />
                     <span className="text-sm font-semibold">€{a.amount}</span>
                   </div>
