@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Inicio", url: "/", icon: LayoutDashboard },
   { title: "Agenda", url: "/agenda", icon: CalendarDays },
-  { title: "Patients", url: "/patients", icon: Users },
-  { title: "Payments", url: "/payments", icon: CreditCard },
+  { title: "Pacientes", url: "/patients", icon: Users },
+  { title: "Pagos", url: "/payments", icon: CreditCard },
 ];
 
 export function AppSidebar() {

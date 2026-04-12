@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, Plus, CheckCircle2, CircleDollarSign } from 
 import { Appointment } from "@/data/store";
 import { cn } from "@/lib/utils";
 
-const HOURS = Array.from({ length: 11 }, (_, i) => i + 8); // 8:00–18:00
+const HOURS = Array.from({ length: 11 }, (_, i) => i + 8);
 
 function fmt(d: Date) {
   return d.toISOString().split("T")[0];
@@ -63,14 +63,13 @@ export default function Agenda() {
 
   return (
     <div className="space-y-4 max-w-3xl mx-auto">
-      {/* Date navigation — simple day-by-day */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="rounded-xl">
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())} className="rounded-xl">
-            Today
+            Hoy
           </Button>
           <Button variant="outline" size="icon" onClick={() => navigate(1)} className="rounded-xl">
             <ChevronRight className="h-4 w-4" />
@@ -78,22 +77,21 @@ export default function Agenda() {
         </div>
 
         <h2 className="text-lg font-semibold">
-          {isToday && <span className="text-primary mr-1">Today ·</span>}
-          {currentDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+          {isToday && <span className="text-primary mr-1">Hoy ·</span>}
+          {currentDate.toLocaleDateString("es-ES", { weekday: "short", month: "short", day: "numeric" })}
         </h2>
 
         <Button onClick={() => openNew()} className="gap-1.5 rounded-xl" size="sm">
-          <Plus className="h-4 w-4" /> New
+          <Plus className="h-4 w-4" /> Nueva
         </Button>
       </div>
 
-      {/* Day view — simple list instead of complex grid */}
       <Card className="overflow-hidden">
         <CardContent className="p-0">
           {appts.length === 0 ? (
             <div className="py-16 text-center">
-              <p className="text-muted-foreground">No appointments this day</p>
-              <Button variant="link" onClick={() => openNew()} className="mt-2">+ Add one</Button>
+              <p className="text-muted-foreground">No hay citas este día</p>
+              <Button variant="link" onClick={() => openNew()} className="mt-2">+ Agregar una</Button>
             </div>
           ) : (
             <div className="divide-y">
@@ -117,15 +115,15 @@ export default function Agenda() {
                     </div>
                     <div className="text-right shrink-0">
                       <p className="font-semibold">€{a.amount}</p>
-                      {a.paid && <p className="text-xs text-success">✓ Paid</p>}
+                      {a.paid && <p className="text-xs text-success">✓ Pagado</p>}
                     </div>
                     {!isDone && (
                       <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={(e) => markDone(e, a)} className="h-10 w-10 rounded-xl bg-success/10 hover:bg-success/20 flex items-center justify-center" title="Done">
+                        <button onClick={(e) => markDone(e, a)} className="h-10 w-10 rounded-xl bg-success/10 hover:bg-success/20 flex items-center justify-center" title="Hecha">
                           <CheckCircle2 className="h-5 w-5 text-success" />
                         </button>
                         {!a.paid && (
-                          <button onClick={(e) => markPaid(e, a)} className="h-10 w-10 rounded-xl bg-primary/10 hover:bg-primary/20 flex items-center justify-center" title="Paid">
+                          <button onClick={(e) => markPaid(e, a)} className="h-10 w-10 rounded-xl bg-primary/10 hover:bg-primary/20 flex items-center justify-center" title="Pagada">
                             <CircleDollarSign className="h-5 w-5 text-primary" />
                           </button>
                         )}
@@ -139,10 +137,9 @@ export default function Agenda() {
         </CardContent>
       </Card>
 
-      {/* Quick hour slots to tap and create */}
       <Card>
         <CardContent className="p-3">
-          <p className="text-xs text-muted-foreground mb-2 font-medium">Tap a time slot to book:</p>
+          <p className="text-xs text-muted-foreground mb-2 font-medium">Toca un horario para agendar:</p>
           <div className="flex flex-wrap gap-1.5">
             {HOURS.map((h) => {
               const timeStr = `${String(h).padStart(2, "0")}:00`;

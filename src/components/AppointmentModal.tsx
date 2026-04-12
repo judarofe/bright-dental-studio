@@ -18,6 +18,13 @@ interface Props {
   defaultTime?: string;
 }
 
+const STATUS_LABELS: Record<AppointmentStatus, string> = {
+  pending: "Pendiente",
+  confirmed: "Confirmada",
+  completed: "Completada",
+  noshow: "No asistió",
+};
+
 export function AppointmentModal({ open, onClose, appointment, defaultDate, defaultTime }: Props) {
   const store = useAppStore();
   const isEdit = !!appointment;
@@ -85,17 +92,16 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle className="text-lg">{isEdit ? "Edit Appointment" : "New Appointment"}</DialogTitle>
+          <DialogTitle className="text-lg">{isEdit ? "Editar Cita" : "Nueva Cita"}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5 mt-1">
-          {/* Patient — simplified */}
           {!showNewPatient ? (
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Patient</Label>
+              <Label className="text-sm font-medium">Paciente</Label>
               <Select value={patientId} onValueChange={setPatientId}>
                 <SelectTrigger className="h-11 rounded-xl text-base">
-                  <SelectValue placeholder="Choose patient..." />
+                  <SelectValue placeholder="Elegir paciente..." />
                 </SelectTrigger>
                 <SelectContent>
                   {store.patients.map((p) => (
@@ -107,56 +113,51 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
                 onClick={() => setShowNewPatient(true)}
                 className="flex items-center gap-1.5 text-sm text-primary hover:underline"
               >
-                <UserPlus className="h-3.5 w-3.5" /> Add new patient
+                <UserPlus className="h-3.5 w-3.5" /> Agregar nuevo paciente
               </button>
             </div>
           ) : (
             <div className="space-y-3 rounded-xl border p-4 bg-accent/30">
-              <p className="text-sm font-medium">New Patient</p>
-              <Input placeholder="Full name" value={newName} onChange={(e) => setNewName(e.target.value)} className="h-11 rounded-xl text-base" />
-              <Input placeholder="Phone number" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} className="h-11 rounded-xl text-base" />
+              <p className="text-sm font-medium">Nuevo Paciente</p>
+              <Input placeholder="Nombre completo" value={newName} onChange={(e) => setNewName(e.target.value)} className="h-11 rounded-xl text-base" />
+              <Input placeholder="Número de teléfono" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} className="h-11 rounded-xl text-base" />
               <button onClick={() => setShowNewPatient(false)} className="text-sm text-primary hover:underline">
-                ← Choose existing patient
+                ← Elegir paciente existente
               </button>
             </div>
           )}
 
-          {/* Date & Time — side by side */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Date</Label>
+              <Label className="text-sm font-medium">Fecha</Label>
               <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-11 rounded-xl" />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Time</Label>
+              <Label className="text-sm font-medium">Hora</Label>
               <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-11 rounded-xl" />
             </div>
           </div>
 
-          {/* Amount */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Amount (€)</Label>
+            <Label className="text-sm font-medium">Monto (€)</Label>
             <Input type="number" value={amount} onChange={(e) => setAmount(+e.target.value)} className="h-11 rounded-xl text-base" placeholder="0" />
           </div>
 
-          {/* Notes — optional, collapsed feel */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Notes <span className="text-muted-foreground font-normal">(optional)</span></Label>
-            <Textarea placeholder="e.g. cleaning, crown, follow-up..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="rounded-xl resize-none" />
+            <Label className="text-sm font-medium">Notas <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+            <Textarea placeholder="ej. limpieza, corona, seguimiento..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="rounded-xl resize-none" />
           </div>
 
-          {/* Paid toggle — only in edit mode, simple */}
           {isEdit && (
             <div className="flex items-center justify-between rounded-xl border p-3">
-              <Label className="text-sm font-medium">Paid</Label>
+              <Label className="text-sm font-medium">Pagado</Label>
               <Switch checked={paid} onCheckedChange={setPaid} />
             </div>
           )}
 
-          {/* Status — only in edit mode */}
           {isEdit && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Status</Label>
+              <Label className="text-sm font-medium">Estado</Label>
               <div className="grid grid-cols-4 gap-1.5">
                 {(["pending", "confirmed", "completed", "noshow"] as AppointmentStatus[]).map((s) => (
                   <button
@@ -171,23 +172,22 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
                         : "bg-muted text-muted-foreground hover:bg-accent"
                     }`}
                   >
-                    {s === "noshow" ? "No-show" : s.charAt(0).toUpperCase() + s.slice(1)}
+                    {STATUS_LABELS[s]}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Actions — big, clear buttons */}
           <div className="flex gap-2 pt-1">
             {isEdit && (
               <Button variant="ghost" size="icon" className="text-destructive shrink-0 rounded-xl" onClick={handleDelete}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
-            <Button variant="outline" onClick={onClose} className="flex-1 h-11 rounded-xl">Cancel</Button>
+            <Button variant="outline" onClick={onClose} className="flex-1 h-11 rounded-xl">Cancelar</Button>
             <Button onClick={handleSave} className="flex-1 h-11 rounded-xl text-base font-medium">
-              {isEdit ? "Save" : "Create Appointment"}
+              {isEdit ? "Guardar" : "Crear Cita"}
             </Button>
           </div>
         </div>
