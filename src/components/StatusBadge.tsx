@@ -1,19 +1,19 @@
-import { Badge } from "@/components/ui/badge";
 import { AppointmentStatus } from "@/data/store";
 import { cn } from "@/lib/utils";
 
-const config: Record<AppointmentStatus, { label: string; className: string }> = {
-  pending: { label: "Pendiente", className: "bg-status-pending/15 text-status-pending border-status-pending/30" },
-  confirmed: { label: "Confirmada", className: "bg-status-confirmed/15 text-status-confirmed border-status-confirmed/30" },
-  completed: { label: "Completada", className: "bg-status-completed/15 text-status-completed border-status-completed/30" },
-  noshow: { label: "No asistió", className: "bg-status-noshow/15 text-status-noshow border-status-noshow/30" },
+const config: Record<AppointmentStatus, { label: string; dot: string }> = {
+  pending: { label: "Pendiente", dot: "bg-warning" },
+  confirmed: { label: "Confirmada", dot: "bg-primary" },
+  completed: { label: "Completada", dot: "bg-success" },
+  noshow: { label: "No asistió", dot: "bg-destructive" },
 };
 
 export function StatusBadge({ status }: { status: AppointmentStatus }) {
   const c = config[status];
   return (
-    <Badge variant="outline" className={cn("text-xs font-medium", c.className)}>
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+      <span className={cn("h-1.5 w-1.5 rounded-full", c.dot)} />
       {c.label}
-    </Badge>
+    </span>
   );
 }
