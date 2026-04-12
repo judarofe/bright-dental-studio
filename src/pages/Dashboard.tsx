@@ -2,31 +2,19 @@ import { useState } from "react";
 import { useAppStore } from "@/data/StoreContext";
 import { StatCard } from "@/components/StatCard";
 import { AppointmentModal } from "@/components/AppointmentModal";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, CalendarDays, DollarSign, Plus, CheckCircle2, Ban, CircleDollarSign } from "lucide-react";
 import { Appointment } from "@/data/store";
 import { cn } from "@/lib/utils";
-
-const STATUS_COLORS: Record<string, string> = {
-  pending: "border-l-status-pending",
-  confirmed: "border-l-status-confirmed",
-  completed: "border-l-status-completed",
-  noshow: "border-l-status-noshow",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  pending: "Pendiente",
-  confirmed: "Confirmada",
-  completed: "Completada",
-  noshow: "No asistió",
-};
 
 export default function Dashboard() {
   const store = useAppStore();
   const today = new Date().toISOString().split("T")[0];
   const todayAppts = store.getAppointmentsForDate(today);
   const todayRevenue = todayAppts.filter((a) => a.paid).reduce((s, a) => s + a.amount, 0);
+  const pending = todayAppts.filter((a) => a.status === "pending" || a.status === "confirmed");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
@@ -47,119 +35,117 @@ export default function Dashboard() {
     store.updateAppointment(a.id, { status: "noshow" });
   };
 
-  const nextAppt = todayAppts.find((a) => a.status === "confirmed" || a.status === "pending");
-
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between">
+    <div className="page-container">
+      {/* Header */}
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-semibold">Hola, Dr. Rivera 👋</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">
-            {new Date().toLocaleDateString("es-ES", { weekday: "long", month: "long", day: "numeric" })}
+          <h1 className="page-title text-2xl">Buenos días, Dr. Rivera</h1>
+          <p className="page-subtitle">
+            {new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" })}
           </p>
         </div>
-        <Button onClick={openNew} size="lg" className="gap-2 text-base px-6 rounded-xl shadow-sm">
-          <Plus className="h-5 w-5" /> Nueva Cita
+        <Button onClick={openNew} className="gap-2 rounded-xl shadow-sm h-10 px-5">
+          <Plus className="h-4 w-4" /> Nueva Cita
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3">
         <StatCard title="Pacientes" value={store.patients.length} icon={Users} />
-        <StatCard title="Hoy" value={`${todayAppts.length} citas`} icon={CalendarDays} />
-        <StatCard title="Ingresos" value={`€${todayRevenue}`} icon={DollarSign} />
+        <StatCard title="Citas hoy" value={todayAppts.length} icon={CalendarDays} accent="warning" />
+        <StatCard title="Ingresos" value={`€${todayRevenue}`} icon={DollarSign} accent="success" />
       </div>
 
-      {nextAppt && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-primary uppercase tracking-wide">Siguiente</p>
-              <p className="text-lg font-semibold mt-0.5">{store.getPatient(nextAppt.patientId)?.name} — {nextAppt.time}</p>
-              <p className="text-sm text-muted-foreground">{nextAppt.notes}</p>
+      {/* Next appointment highlight */}
+      {pending.length > 0 && (
+        <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent shadow-sm">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <CalendarDays className="h-5 w-5 text-primary" />
             </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" className="rounded-lg gap-1.5" onClick={(e) => markDone(e, nextAppt)}>
-                <CheckCircle2 className="h-4 w-4 text-success" /> Hecha
-              </Button>
-              {!nextAppt.paid && (
-                <Button size="sm" variant="outline" className="rounded-lg gap-1.5" onClick={(e) => markPaid(e, nextAppt)}>
-                  <CircleDollarSign className="h-4 w-4 text-primary" /> Pagada
-                </Button>
+            <div className="flex-1 min-w-0">
+              <p className="section-title text-xs mb-1">Siguiente cita</p>
+              <p className="text-base font-semibold">{store.getPatient(pending[0].patientId)?.name} — {pending[0].time}</p>
+              {pending[0].notes && <p className="text-sm text-muted-foreground truncate mt-0.5">{pending[0].notes}</p>}
+            </div>
+            <div className="flex gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={(e) => markDone(e, pending[0])}
+                className="h-9 px-3 rounded-lg bg-success/10 hover:bg-success/15 flex items-center gap-1.5 text-sm font-medium text-success transition-colors"
+              >
+                <CheckCircle2 className="h-4 w-4" /> Hecha
+              </button>
+              {!pending[0].paid && (
+                <button
+                  onClick={(e) => markPaid(e, pending[0])}
+                  className="h-9 px-3 rounded-lg bg-primary/10 hover:bg-primary/15 flex items-center gap-1.5 text-sm font-medium text-primary transition-colors"
+                >
+                  <CircleDollarSign className="h-4 w-4" /> Cobrar
+                </button>
               )}
             </div>
           </CardContent>
         </Card>
       )}
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-medium">Agenda de Hoy</CardTitle>
-        </CardHeader>
-        <CardContent className="p-2">
-          {todayAppts.length === 0 ? (
-            <p className="text-muted-foreground text-sm py-8 text-center">No hay citas hoy — ¡disfruta tu día libre! 🎉</p>
-          ) : (
-            <div className="space-y-1">
-              {todayAppts.map((a) => {
-                const patient = store.getPatient(a.patientId);
-                const isDone = a.status === "completed";
-                const isNoShow = a.status === "noshow";
-                return (
-                  <div
-                    key={a.id}
-                    onClick={() => openEdit(a)}
-                    className={cn(
-                      "flex items-center gap-3 rounded-xl border-l-4 p-4 cursor-pointer hover:bg-accent/40 transition-all",
-                      STATUS_COLORS[a.status],
-                      (isDone || isNoShow) && "opacity-60"
-                    )}
-                  >
-                    <div className="text-lg font-semibold w-16 shrink-0">{a.time}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className={cn("font-medium", isDone && "line-through")}>{patient?.name || "Desconocido"}</p>
-                      <p className="text-sm text-muted-foreground truncate">{a.notes}</p>
-                    </div>
-                    <div className="text-right shrink-0 mr-1">
-                      <p className="font-semibold">€{a.amount}</p>
-                      {a.paid && <p className="text-xs text-success">✓ Pagado</p>}
-                    </div>
-                    {!isDone && !isNoShow && (
-                      <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={(e) => markDone(e, a)}
-                          className="h-9 w-9 rounded-lg bg-success/10 hover:bg-success/20 flex items-center justify-center transition-colors"
-                          title="Marcar como hecha"
-                        >
-                          <CheckCircle2 className="h-4 w-4 text-success" />
-                        </button>
-                        <button
-                          onClick={(e) => markNoShow(e, a)}
-                          className="h-9 w-9 rounded-lg bg-destructive/10 hover:bg-destructive/20 flex items-center justify-center transition-colors"
-                          title="No asistió"
-                        >
-                          <Ban className="h-4 w-4 text-destructive" />
-                        </button>
-                        {!a.paid && (
-                          <button
-                            onClick={(e) => markPaid(e, a)}
-                            className="h-9 w-9 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
-                            title="Marcar como pagado"
-                          >
-                            <CircleDollarSign className="h-4 w-4 text-primary" />
-                          </button>
-                        )}
+      {/* Today's schedule */}
+      <div>
+        <p className="section-title mb-3">Agenda de hoy</p>
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <CardContent className="p-0">
+            {todayAppts.length === 0 ? (
+              <div className="py-16 text-center">
+                <p className="text-muted-foreground text-sm">No hay citas programadas</p>
+                <Button variant="link" onClick={openNew} className="mt-1 text-sm">+ Agregar cita</Button>
+              </div>
+            ) : (
+              <div className="divide-y divide-border/60">
+                {todayAppts.map((a) => {
+                  const patient = store.getPatient(a.patientId);
+                  const isDone = a.status === "completed" || a.status === "noshow";
+                  return (
+                    <div
+                      key={a.id}
+                      onClick={() => openEdit(a)}
+                      className={cn(
+                        "flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-accent/40 transition-colors group",
+                        isDone && "opacity-50"
+                      )}
+                    >
+                      <span className="text-sm font-mono font-semibold text-muted-foreground w-12 shrink-0">{a.time}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn("text-sm font-medium", isDone && "line-through")}>{patient?.name || "—"}</p>
+                        {a.notes && <p className="text-xs text-muted-foreground truncate mt-0.5">{a.notes}</p>}
                       </div>
-                    )}
-                    {(isDone || isNoShow) && (
-                      <span className="text-xs font-medium text-muted-foreground shrink-0">{STATUS_LABELS[a.status]}</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                      <StatusBadge status={a.status} />
+                      <div className="text-right shrink-0 w-16">
+                        <p className="text-sm font-semibold">€{a.amount}</p>
+                        {a.paid && <p className="text-[10px] font-medium text-success">Pagado</p>}
+                      </div>
+                      {!isDone && (
+                        <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                          <button onClick={(e) => markDone(e, a)} className="h-8 w-8 rounded-lg bg-success/10 hover:bg-success/20 flex items-center justify-center" title="Hecha">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                          </button>
+                          <button onClick={(e) => markNoShow(e, a)} className="h-8 w-8 rounded-lg bg-destructive/10 hover:bg-destructive/20 flex items-center justify-center" title="No asistió">
+                            <Ban className="h-3.5 w-3.5 text-destructive" />
+                          </button>
+                          {!a.paid && (
+                            <button onClick={(e) => markPaid(e, a)} className="h-8 w-8 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center" title="Cobrar">
+                              <CircleDollarSign className="h-3.5 w-3.5 text-primary" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <AppointmentModal
         open={modalOpen}
