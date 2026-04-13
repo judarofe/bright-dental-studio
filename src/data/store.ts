@@ -6,6 +6,9 @@ export interface Patient {
   id: string;
   name: string;
   phone: string;
+  email: string;
+  cedula: string;
+  address: string;
   notes: string;
   createdAt: string;
 }
@@ -25,11 +28,11 @@ export interface Appointment {
 const today = new Date().toISOString().split("T")[0];
 
 const INITIAL_PATIENTS: Patient[] = [
-  { id: "p1", name: "María García", phone: "+34 612 345 678", notes: "Sensible a la anestesia", createdAt: "2024-01-15" },
-  { id: "p2", name: "Carlos López", phone: "+34 623 456 789", notes: "Tratamiento de ortodoncia en curso", createdAt: "2024-02-20" },
-  { id: "p3", name: "Ana Martínez", phone: "+34 634 567 890", notes: "", createdAt: "2024-03-10" },
-  { id: "p4", name: "Pedro Sánchez", phone: "+34 645 678 901", notes: "Necesita reemplazo de corona", createdAt: "2024-04-05" },
-  { id: "p5", name: "Laura Fernández", phone: "+34 656 789 012", notes: "Blanqueamiento programado", createdAt: "2024-05-12" },
+  { id: "p1", name: "María García", phone: "+34 612 345 678", email: "maria@email.com", cedula: "12345678A", address: "Calle Mayor 12, Madrid", notes: "Sensible a la anestesia", createdAt: "2024-01-15" },
+  { id: "p2", name: "Carlos López", phone: "+34 623 456 789", email: "carlos@email.com", cedula: "23456789B", address: "Av. Libertad 5, Barcelona", notes: "Tratamiento de ortodoncia en curso", createdAt: "2024-02-20" },
+  { id: "p3", name: "Ana Martínez", phone: "+34 634 567 890", email: "", cedula: "34567890C", address: "", notes: "", createdAt: "2024-03-10" },
+  { id: "p4", name: "Pedro Sánchez", phone: "+34 645 678 901", email: "pedro@email.com", cedula: "", address: "Plaza España 3, Sevilla", notes: "Necesita reemplazo de corona", createdAt: "2024-04-05" },
+  { id: "p5", name: "Laura Fernández", phone: "+34 656 789 012", email: "laura@email.com", cedula: "56789012E", address: "", notes: "Blanqueamiento programado", createdAt: "2024-05-12" },
 ];
 
 const INITIAL_APPOINTMENTS: Appointment[] = [
