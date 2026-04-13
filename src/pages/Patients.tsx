@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Search, Phone, ChevronRight } from "lucide-react";
+import { Plus, Search, Phone, ChevronRight, Mail } from "lucide-react";
 
 export default function Patients() {
   const store = useAppStore();
@@ -16,6 +16,9 @@ export default function Patients() {
   const [addOpen, setAddOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newCedula, setNewCedula] = useState("");
+  const [newAddress, setNewAddress] = useState("");
   const [newNotes, setNewNotes] = useState("");
 
   const filtered = store.patients.filter((p) =>
@@ -25,8 +28,8 @@ export default function Patients() {
 
   const handleAdd = () => {
     if (!newName.trim()) return;
-    const p = store.addPatient({ name: newName.trim(), phone: newPhone.trim(), notes: newNotes.trim() });
-    setNewName(""); setNewPhone(""); setNewNotes(""); setAddOpen(false);
+    const p = store.addPatient({ name: newName.trim(), phone: newPhone.trim(), email: newEmail.trim(), cedula: newCedula.trim(), address: newAddress.trim(), notes: newNotes.trim() });
+    setNewName(""); setNewPhone(""); setNewEmail(""); setNewCedula(""); setNewAddress(""); setNewNotes(""); setAddOpen(false);
     navigate(`/patients/${p.id}`);
   };
 
@@ -87,6 +90,9 @@ export default function Patients() {
           <div className="space-y-4 mt-2">
             <div className="space-y-1.5"><Label className="text-sm">Nombre</Label><Input value={newName} onChange={(e) => setNewName(e.target.value)} className="rounded-xl h-10" /></div>
             <div className="space-y-1.5"><Label className="text-sm">Teléfono</Label><Input value={newPhone} onChange={(e) => setNewPhone(e.target.value)} className="rounded-xl h-10" /></div>
+            <div className="space-y-1.5"><Label className="text-sm">Correo electrónico</Label><Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="rounded-xl h-10" /></div>
+            <div className="space-y-1.5"><Label className="text-sm">Cédula</Label><Input value={newCedula} onChange={(e) => setNewCedula(e.target.value)} className="rounded-xl h-10" /></div>
+            <div className="space-y-1.5"><Label className="text-sm">Dirección</Label><Input value={newAddress} onChange={(e) => setNewAddress(e.target.value)} className="rounded-xl h-10" /></div>
             <div className="space-y-1.5"><Label className="text-sm">Notas</Label><Textarea value={newNotes} onChange={(e) => setNewNotes(e.target.value)} rows={2} className="rounded-xl resize-none" /></div>
             <div className="flex gap-2 justify-end pt-1">
               <Button variant="outline" onClick={() => setAddOpen(false)} className="rounded-xl">Cancelar</Button>
