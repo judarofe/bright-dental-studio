@@ -37,12 +37,18 @@ export default function PatientDetail() {
   const [apptModalOpen, setApptModalOpen] = useState(false);
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
 
-  // Editable notes
   const [editNotes, setEditNotes] = useState(patient?.notes || "");
   const [notesSaved, setNotesSaved] = useState(false);
-
-  // Editable info
   const [editPhone, setEditPhone] = useState(patient?.phone || "");
+
+  const stats = useMemo(() => {
+    const total = history.length;
+    const completed = history.filter((a) => a.status === "completed").length;
+    const totalPaid = history.filter((a) => a.paid).reduce((s, a) => s + a.amount, 0);
+    const totalOwed = history.filter((a) => !a.paid).reduce((s, a) => s + a.amount, 0);
+    const lastVisit = history.find((a) => a.status === "completed");
+    return { total, completed, totalPaid, totalOwed, lastVisit };
+  }, [history]);
 
   if (!patient) {
     return (
@@ -58,15 +64,6 @@ export default function PatientDetail() {
       </div>
     );
   }
-
-  const stats = useMemo(() => {
-    const total = history.length;
-    const completed = history.filter((a) => a.status === "completed").length;
-    const totalPaid = history.filter((a) => a.paid).reduce((s, a) => s + a.amount, 0);
-    const totalOwed = history.filter((a) => !a.paid).reduce((s, a) => s + a.amount, 0);
-    const lastVisit = history.find((a) => a.status === "completed");
-    return { total, completed, totalPaid, totalOwed, lastVisit };
-  }, [history]);
 
   const initials = patient.name
     .split(" ")

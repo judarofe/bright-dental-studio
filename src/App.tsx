@@ -9,6 +9,7 @@ import { FloatingAction } from "@/components/FloatingAction";
 import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Patients from "./pages/Patients";
+import PatientDetail from "./pages/PatientDetail";
 import Payments from "./pages/Payments";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +27,7 @@ const App = () => (
               <Route path="/" element={<Dashboard />} />
               <Route path="/agenda" element={<Agenda />} />
               <Route path="/patients" element={<Patients />} />
+              <Route path="/patients/:id" element={<PatientDetail />} />
               <Route path="/payments" element={<Payments />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
