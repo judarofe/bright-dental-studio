@@ -40,6 +40,9 @@ export default function PatientDetail() {
   const [editNotes, setEditNotes] = useState(patient?.notes || "");
   const [notesSaved, setNotesSaved] = useState(false);
   const [editPhone, setEditPhone] = useState(patient?.phone || "");
+  const [editEmail, setEditEmail] = useState(patient?.email || "");
+  const [editCedula, setEditCedula] = useState(patient?.cedula || "");
+  const [editAddress, setEditAddress] = useState(patient?.address || "");
 
   const stats = useMemo(() => {
     const total = history.length;
@@ -78,9 +81,10 @@ export default function PatientDetail() {
     setTimeout(() => setNotesSaved(false), 2000);
   };
 
-  const savePhone = () => {
-    store.updatePatient(patient.id, { phone: editPhone });
-  };
+  const savePhone = () => store.updatePatient(patient.id, { phone: editPhone });
+  const saveEmail = () => store.updatePatient(patient.id, { email: editEmail });
+  const saveCedula = () => store.updatePatient(patient.id, { cedula: editCedula });
+  const saveAddress = () => store.updatePatient(patient.id, { address: editAddress });
 
   const openNewAppt = () => {
     setSelectedAppt(null);
@@ -177,14 +181,19 @@ export default function PatientDetail() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Teléfono</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={editPhone}
-                      onChange={(e) => setEditPhone(e.target.value)}
-                      className="h-9 rounded-lg text-sm"
-                      onBlur={savePhone}
-                    />
-                  </div>
+                  <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-9 rounded-lg text-sm" onBlur={savePhone} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Correo electrónico</Label>
+                  <Input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="h-9 rounded-lg text-sm" onBlur={saveEmail} placeholder="correo@ejemplo.com" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Cédula</Label>
+                  <Input value={editCedula} onChange={(e) => setEditCedula(e.target.value)} className="h-9 rounded-lg text-sm" onBlur={saveCedula} placeholder="Número de cédula" />
+                </div>
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Dirección</Label>
+                  <Input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} className="h-9 rounded-lg text-sm" onBlur={saveAddress} placeholder="Dirección del paciente" />
                 </div>
               </div>
             </CardContent>
