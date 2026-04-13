@@ -68,7 +68,7 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
   const handleSave = () => {
     let pid = patientId;
     if (showNewPatient && newName.trim()) {
-      const p = store.addPatient({ name: newName.trim(), phone: newPhone.trim(), notes: "" });
+      const p = store.addPatient({ name: newName.trim(), phone: newPhone.trim(), email: "", cedula: "", address: "", notes: "" });
       pid = p.id;
     }
     if (!pid) return;
