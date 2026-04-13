@@ -6,6 +6,9 @@ export interface Patient {
   id: string;
   name: string;
   phone: string;
+  email: string;
+  cedula: string;
+  address: string;
   notes: string;
   createdAt: string;
 }
