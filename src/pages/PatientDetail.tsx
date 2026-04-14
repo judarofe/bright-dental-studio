@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/data/StoreContext";
 import { AppointmentModal } from "@/components/AppointmentModal";
 import { StatusBadge } from "@/components/StatusBadge";
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -22,6 +23,7 @@ import {
   Save,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function PatientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -38,7 +40,6 @@ export default function PatientDetail() {
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
 
   const [editNotes, setEditNotes] = useState(patient?.notes || "");
-  const [notesSaved, setNotesSaved] = useState(false);
   const [editPhone, setEditPhone] = useState(patient?.phone || "");
   const [editEmail, setEditEmail] = useState(patient?.email || "");
   const [editCedula, setEditCedula] = useState(patient?.cedula || "");
@@ -60,8 +61,14 @@ export default function PatientDetail() {
           <ArrowLeft className="h-4 w-4" /> Volver
         </Button>
         <Card className="border-0 shadow-sm">
-          <CardContent className="py-16 text-center">
-            <p className="text-muted-foreground">Paciente no encontrado</p>
+          <CardContent className="p-0">
+            <EmptyState
+              icon={User}
+              title="Paciente no encontrado"
+              description="Este paciente no existe o fue eliminado."
+              actionLabel="Ver pacientes"
+              onAction={() => navigate("/patients")}
+            />
           </CardContent>
         </Card>
       </div>
@@ -75,16 +82,15 @@ export default function PatientDetail() {
     .slice(0, 2)
     .toUpperCase();
 
-  const saveNotes = () => {
-    store.updatePatient(patient.id, { notes: editNotes });
-    setNotesSaved(true);
-    setTimeout(() => setNotesSaved(false), 2000);
+  const saveField = (field: string, value: string) => {
+    store.updatePatient(patient.id, { [field]: value });
+    toast.success("Datos guardados");
   };
 
-  const savePhone = () => store.updatePatient(patient.id, { phone: editPhone });
-  const saveEmail = () => store.updatePatient(patient.id, { email: editEmail });
-  const saveCedula = () => store.updatePatient(patient.id, { cedula: editCedula });
-  const saveAddress = () => store.updatePatient(patient.id, { address: editAddress });
+  const saveNotes = () => {
+    store.updatePatient(patient.id, { notes: editNotes });
+    toast.success("Notas guardadas");
+  };
 
   const openNewAppt = () => {
     setSelectedAppt(null);
@@ -174,6 +180,7 @@ export default function PatientDetail() {
           <Card className="border-0 shadow-sm">
             <CardContent className="p-5 space-y-4">
               <p className="text-sm font-semibold">Información de contacto</p>
+              <p className="text-[11px] text-muted-foreground -mt-2">Los cambios se guardan automáticamente al salir del campo.</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Nombre</Label>
@@ -181,19 +188,19 @@ export default function PatientDetail() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Teléfono</Label>
-                  <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-9 rounded-lg text-sm" onBlur={savePhone} />
+                  <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="h-9 rounded-lg text-sm" onBlur={() => saveField("phone", editPhone)} />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Correo electrónico</Label>
-                  <Input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="h-9 rounded-lg text-sm" onBlur={saveEmail} placeholder="correo@ejemplo.com" />
+                  <Input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="h-9 rounded-lg text-sm" onBlur={() => saveField("email", editEmail)} placeholder="correo@ejemplo.com" />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Cédula</Label>
-                  <Input value={editCedula} onChange={(e) => setEditCedula(e.target.value)} className="h-9 rounded-lg text-sm" onBlur={saveCedula} placeholder="Número de cédula" />
+                  <Input value={editCedula} onChange={(e) => setEditCedula(e.target.value)} className="h-9 rounded-lg text-sm" onBlur={() => saveField("cedula", editCedula)} placeholder="Número de cédula" />
                 </div>
                 <div className="col-span-2 space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Dirección</Label>
-                  <Input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} className="h-9 rounded-lg text-sm" onBlur={saveAddress} placeholder="Dirección del paciente" />
+                  <Input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} className="h-9 rounded-lg text-sm" onBlur={() => saveField("address", editAddress)} placeholder="Dirección del paciente" />
                 </div>
               </div>
             </CardContent>
@@ -221,13 +228,13 @@ export default function PatientDetail() {
           <Card className="border-0 shadow-sm overflow-hidden">
             <CardContent className="p-0">
               {history.length === 0 ? (
-                <div className="py-14 text-center">
-                  <CalendarDays className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground mb-3">Aún no hay citas registradas</p>
-                  <Button onClick={openNewAppt} size="sm" className="rounded-xl gap-1.5">
-                    <Plus className="h-4 w-4" /> Agendar cita
-                  </Button>
-                </div>
+                <EmptyState
+                  icon={CalendarDays}
+                  title="Sin citas registradas"
+                  description="Este paciente aún no tiene citas. Agenda la primera."
+                  actionLabel="+ Agendar cita"
+                  onAction={openNewAppt}
+                />
               ) : (
                 <div className="divide-y divide-border/60">
                   {history.map((a) => {
@@ -267,8 +274,7 @@ export default function PatientDetail() {
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Notas del paciente</p>
                 <Button size="sm" variant="outline" onClick={saveNotes} className="rounded-lg gap-1.5 h-8 text-xs">
-                  <Save className="h-3.5 w-3.5" />
-                  {notesSaved ? "Guardado ✓" : "Guardar"}
+                  <Save className="h-3.5 w-3.5" /> Guardar
                 </Button>
               </div>
               <Textarea
@@ -287,13 +293,13 @@ export default function PatientDetail() {
           <Card className="border-0 shadow-sm overflow-hidden">
             <CardContent className="p-0">
               {history.length === 0 ? (
-                <div className="py-14 text-center">
-                  <CreditCard className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">No hay registros de pago</p>
-                </div>
+                <EmptyState
+                  icon={CreditCard}
+                  title="Sin registros de pago"
+                  description="Los pagos aparecerán aquí cuando se registren citas."
+                />
               ) : (
                 <>
-                  {/* Summary bar */}
                   <div className="flex items-center justify-between px-5 py-3 bg-muted/40 border-b border-border/60">
                     <div className="flex gap-6">
                       <span className="text-xs text-muted-foreground">

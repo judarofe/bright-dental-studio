@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useAppStore } from "@/data/StoreContext";
 import { AppointmentModal } from "@/components/AppointmentModal";
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -9,7 +10,6 @@ import {
   Plus,
   CheckCircle2,
   CircleDollarSign,
-  XCircle,
   UserX,
   Calendar as CalendarIcon,
   Clock,
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Appointment, AppointmentStatus } from "@/data/store";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const HOURS = Array.from({ length: 11 }, (_, i) => i + 8);
 
@@ -74,17 +75,21 @@ export default function Agenda() {
   const updateStatus = (e: React.MouseEvent, a: Appointment, status: AppointmentStatus) => {
     e.stopPropagation();
     store.updateAppointment(a.id, { status });
+    const patient = store.getPatient(a.patientId)?.name;
+    if (status === "completed") toast.success("Cita completada", { description: patient });
+    if (status === "noshow") toast("No asistió", { description: patient });
   };
 
   const markPaid = (e: React.MouseEvent, a: Appointment) => {
     e.stopPropagation();
     store.updateAppointment(a.id, { paid: true });
+    toast.success("Pago registrado", { description: `€${a.amount}` });
   };
 
   // Week day chips
   const weekDays = useMemo(() => {
     const start = new Date(currentDate);
-    start.setDate(start.getDate() - start.getDay() + 1); // Monday
+    start.setDate(start.getDate() - start.getDay() + 1);
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(start);
       d.setDate(d.getDate() + i);
@@ -185,17 +190,14 @@ export default function Agenda() {
       {/* Appointment list */}
       {appts.length === 0 ? (
         <Card className="border-0 shadow-sm">
-          <CardContent className="py-16 text-center">
-            <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mb-4">
-              <CalendarIcon className="h-7 w-7 text-muted-foreground" />
-            </div>
-            <p className="text-base font-medium text-foreground mb-1">Sin citas programadas</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              {isToday ? "No tienes citas para hoy." : "No hay citas para este día."}
-            </p>
-            <Button onClick={() => openNew()} className="rounded-xl gap-1.5">
-              <Plus className="h-4 w-4" /> Agendar cita
-            </Button>
+          <CardContent className="p-0">
+            <EmptyState
+              icon={CalendarIcon}
+              title="Sin citas programadas"
+              description={isToday ? "No tienes citas para hoy. ¡Aprovecha para organizar tu agenda!" : "No hay citas para este día."}
+              actionLabel="+ Agendar cita"
+              onAction={() => openNew()}
+            />
           </CardContent>
         </Card>
       ) : (
