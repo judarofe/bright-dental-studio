@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Plus, Search, Phone, ChevronRight, AlertCircle } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
+import { Plus, Search, Phone, ChevronRight, AlertCircle, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function Patients() {
   const store = useAppStore();
@@ -58,6 +60,7 @@ export default function Patients() {
       address: newAddress.trim(),
       notes: newNotes.trim(),
     });
+    toast.success("Paciente creado", { description: newName.trim() });
     resetForm();
     setAddOpen(false);
     navigate(`/patients/${p.id}`);
@@ -84,8 +87,21 @@ export default function Patients() {
 
       <Card className="border-0 shadow-sm overflow-hidden">
         <CardContent className="p-0">
-          {filtered.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-12">No se encontraron pacientes</p>
+          {store.patients.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="Sin pacientes registrados"
+              description="Agrega tu primer paciente para comenzar a gestionar tu consulta."
+              actionLabel="+ Nuevo paciente"
+              onAction={() => setAddOpen(true)}
+            />
+          ) : filtered.length === 0 ? (
+            <div className="py-14 text-center">
+              <p className="text-sm text-muted-foreground mb-1">No se encontraron resultados para "{search}"</p>
+              <button onClick={() => setSearch("")} className="text-xs text-primary font-medium hover:underline">
+                Limpiar búsqueda
+              </button>
+            </div>
           ) : (
             <div className="divide-y divide-border/60">
               {filtered.map((p) => (
@@ -125,7 +141,6 @@ export default function Patients() {
           </div>
 
           <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
-            {/* Personal info */}
             <fieldset className="space-y-3">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Datos personales</Label>
               <div className="space-y-1">
@@ -141,7 +156,6 @@ export default function Patients() {
               <Input placeholder="Cédula" value={newCedula} onChange={(e) => setNewCedula(e.target.value)} className="h-10 rounded-xl" />
             </fieldset>
 
-            {/* Contact */}
             <fieldset className="space-y-3">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Contacto</Label>
               <div className="grid grid-cols-2 gap-3">
@@ -160,7 +174,6 @@ export default function Patients() {
               <Input placeholder="Dirección" value={newAddress} onChange={(e) => setNewAddress(e.target.value)} className="h-10 rounded-xl" />
             </fieldset>
 
-            {/* Notes */}
             <fieldset className="space-y-2">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Notas <span className="normal-case font-normal">(opcional)</span></Label>
               <Textarea
@@ -173,7 +186,6 @@ export default function Patients() {
             </fieldset>
           </div>
 
-          {/* Footer */}
           <div className="px-6 py-4 border-t border-border/60 bg-muted/20 flex justify-end gap-2">
             <Button variant="outline" onClick={() => { resetForm(); setAddOpen(false); }} className="h-9 rounded-xl text-sm px-4">
               Cancelar

@@ -3,11 +3,13 @@ import { useAppStore } from "@/data/StoreContext";
 import { StatCard } from "@/components/StatCard";
 import { AppointmentModal } from "@/components/AppointmentModal";
 import { StatusBadge } from "@/components/StatusBadge";
+import { EmptyState } from "@/components/EmptyState";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, CalendarDays, DollarSign, Plus, CheckCircle2, Ban, CircleDollarSign } from "lucide-react";
 import { Appointment } from "@/data/store";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const store = useAppStore();
@@ -25,14 +27,17 @@ export default function Dashboard() {
   const markDone = (e: React.MouseEvent, a: Appointment) => {
     e.stopPropagation();
     store.updateAppointment(a.id, { status: "completed" });
+    toast.success("Cita completada", { description: store.getPatient(a.patientId)?.name });
   };
   const markPaid = (e: React.MouseEvent, a: Appointment) => {
     e.stopPropagation();
     store.updateAppointment(a.id, { paid: true });
+    toast.success("Pago registrado", { description: `€${a.amount}` });
   };
   const markNoShow = (e: React.MouseEvent, a: Appointment) => {
     e.stopPropagation();
     store.updateAppointment(a.id, { status: "noshow" });
+    toast("No asistió", { description: store.getPatient(a.patientId)?.name });
   };
 
   return (
@@ -95,10 +100,13 @@ export default function Dashboard() {
         <Card className="border-0 shadow-sm overflow-hidden">
           <CardContent className="p-0">
             {todayAppts.length === 0 ? (
-              <div className="py-16 text-center">
-                <p className="text-muted-foreground text-sm">No hay citas programadas</p>
-                <Button variant="link" onClick={openNew} className="mt-1 text-sm">+ Agregar cita</Button>
-              </div>
+              <EmptyState
+                icon={CalendarDays}
+                title="Sin citas para hoy"
+                description="Tu día está libre. Agenda una cita para comenzar."
+                actionLabel="+ Agregar cita"
+                onAction={openNew}
+              />
             ) : (
               <div className="divide-y divide-border/60">
                 {todayAppts.map((a) => {
