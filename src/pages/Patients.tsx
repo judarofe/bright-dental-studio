@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Search, Phone, ChevronRight, Mail } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Plus, Search, Phone, ChevronRight, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function Patients() {
   const store = useAppStore();
@@ -20,16 +21,45 @@ export default function Patients() {
   const [newCedula, setNewCedula] = useState("");
   const [newAddress, setNewAddress] = useState("");
   const [newNotes, setNewNotes] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const filtered = store.patients.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.phone.includes(search)
+  const filtered = store.patients.filter(
+    (p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.phone.includes(search) ||
+      p.cedula?.includes(search)
   );
 
+  const resetForm = () => {
+    setNewName("");
+    setNewPhone("");
+    setNewEmail("");
+    setNewCedula("");
+    setNewAddress("");
+    setNewNotes("");
+    setErrors({});
+  };
+
+  const validate = () => {
+    const errs: Record<string, string> = {};
+    if (!newName.trim()) errs.name = "El nombre es obligatorio";
+    if (newEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) errs.email = "Correo no válido";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleAdd = () => {
-    if (!newName.trim()) return;
-    const p = store.addPatient({ name: newName.trim(), phone: newPhone.trim(), email: newEmail.trim(), cedula: newCedula.trim(), address: newAddress.trim(), notes: newNotes.trim() });
-    setNewName(""); setNewPhone(""); setNewEmail(""); setNewCedula(""); setNewAddress(""); setNewNotes(""); setAddOpen(false);
+    if (!validate()) return;
+    const p = store.addPatient({
+      name: newName.trim(),
+      phone: newPhone.trim(),
+      email: newEmail.trim(),
+      cedula: newCedula.trim(),
+      address: newAddress.trim(),
+      notes: newNotes.trim(),
+    });
+    resetForm();
+    setAddOpen(false);
     navigate(`/patients/${p.id}`);
   };
 
@@ -45,7 +75,7 @@ export default function Patients() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar por nombre o teléfono..."
+          placeholder="Buscar por nombre, teléfono o cédula..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9 h-10 rounded-xl border-border/60"
@@ -84,20 +114,73 @@ export default function Patients() {
         </CardContent>
       </Card>
 
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle>Nuevo Paciente</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-2">
-            <div className="space-y-1.5"><Label className="text-sm">Nombre</Label><Input value={newName} onChange={(e) => setNewName(e.target.value)} className="rounded-xl h-10" /></div>
-            <div className="space-y-1.5"><Label className="text-sm">Teléfono</Label><Input value={newPhone} onChange={(e) => setNewPhone(e.target.value)} className="rounded-xl h-10" /></div>
-            <div className="space-y-1.5"><Label className="text-sm">Correo electrónico</Label><Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="rounded-xl h-10" /></div>
-            <div className="space-y-1.5"><Label className="text-sm">Cédula</Label><Input value={newCedula} onChange={(e) => setNewCedula(e.target.value)} className="rounded-xl h-10" /></div>
-            <div className="space-y-1.5"><Label className="text-sm">Dirección</Label><Input value={newAddress} onChange={(e) => setNewAddress(e.target.value)} className="rounded-xl h-10" /></div>
-            <div className="space-y-1.5"><Label className="text-sm">Notas</Label><Textarea value={newNotes} onChange={(e) => setNewNotes(e.target.value)} rows={2} className="rounded-xl resize-none" /></div>
-            <div className="flex gap-2 justify-end pt-1">
-              <Button variant="outline" onClick={() => setAddOpen(false)} className="rounded-xl">Cancelar</Button>
-              <Button onClick={handleAdd} className="rounded-xl">Agregar</Button>
-            </div>
+      {/* ── New Patient Modal ── */}
+      <Dialog open={addOpen} onOpenChange={(v) => { if (!v) { resetForm(); setAddOpen(false); } }}>
+        <DialogContent className="sm:max-w-[420px] p-0 gap-0 overflow-hidden">
+          <div className="px-6 pt-6 pb-4 border-b border-border/60">
+            <DialogHeader className="space-y-1">
+              <DialogTitle className="text-base">Nuevo Paciente</DialogTitle>
+              <DialogDescription className="text-xs">Ingresa los datos del paciente. Solo el nombre es obligatorio.</DialogDescription>
+            </DialogHeader>
+          </div>
+
+          <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
+            {/* Personal info */}
+            <fieldset className="space-y-3">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Datos personales</Label>
+              <div className="space-y-1">
+                <Input
+                  placeholder="Nombre completo *"
+                  value={newName}
+                  onChange={(e) => { setNewName(e.target.value); setErrors((er) => ({ ...er, name: "" })); }}
+                  className={cn("h-10 rounded-xl", errors.name && "border-destructive ring-1 ring-destructive/30")}
+                  autoFocus
+                />
+                {errors.name && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3" />{errors.name}</p>}
+              </div>
+              <Input placeholder="Cédula" value={newCedula} onChange={(e) => setNewCedula(e.target.value)} className="h-10 rounded-xl" />
+            </fieldset>
+
+            {/* Contact */}
+            <fieldset className="space-y-3">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Contacto</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <Input placeholder="Teléfono" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} className="h-10 rounded-xl" />
+                <div className="space-y-1">
+                  <Input
+                    placeholder="Correo electrónico"
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => { setNewEmail(e.target.value); setErrors((er) => ({ ...er, email: "" })); }}
+                    className={cn("h-10 rounded-xl", errors.email && "border-destructive ring-1 ring-destructive/30")}
+                  />
+                  {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                </div>
+              </div>
+              <Input placeholder="Dirección" value={newAddress} onChange={(e) => setNewAddress(e.target.value)} className="h-10 rounded-xl" />
+            </fieldset>
+
+            {/* Notes */}
+            <fieldset className="space-y-2">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Notas <span className="normal-case font-normal">(opcional)</span></Label>
+              <Textarea
+                placeholder="Alergias, condiciones previas, observaciones..."
+                value={newNotes}
+                onChange={(e) => setNewNotes(e.target.value)}
+                rows={2}
+                className="rounded-xl resize-none text-sm"
+              />
+            </fieldset>
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-border/60 bg-muted/20 flex justify-end gap-2">
+            <Button variant="outline" onClick={() => { resetForm(); setAddOpen(false); }} className="h-9 rounded-xl text-sm px-4">
+              Cancelar
+            </Button>
+            <Button onClick={handleAdd} className="h-9 rounded-xl text-sm px-5 font-medium">
+              Agregar paciente
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

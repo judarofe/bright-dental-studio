@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect, useCallback } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useAppStore } from "@/data/StoreContext";
 import { Appointment, AppointmentStatus } from "@/data/store";
-import { Trash2, UserPlus } from "lucide-react";
+import { Trash2, UserPlus, ArrowLeft, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -41,6 +41,9 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
   const [showNewPatient, setShowNewPatient] = useState(false);
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (appointment) {
@@ -63,15 +66,35 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
     setShowNewPatient(false);
     setNewName("");
     setNewPhone("");
+    setNewEmail("");
+    setErrors({});
   }, [appointment, open, defaultDate, defaultTime]);
 
+  const validate = useCallback(() => {
+    const errs: Record<string, string> = {};
+    if (!showNewPatient && !patientId) errs.patient = "Selecciona un paciente";
+    if (showNewPatient && !newName.trim()) errs.newName = "El nombre es obligatorio";
+    if (!date) errs.date = "Selecciona una fecha";
+    if (!time) errs.time = "Selecciona una hora";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  }, [showNewPatient, patientId, newName, date, time]);
+
   const handleSave = () => {
+    if (!validate()) return;
+
     let pid = patientId;
     if (showNewPatient && newName.trim()) {
-      const p = store.addPatient({ name: newName.trim(), phone: newPhone.trim(), email: "", cedula: "", address: "", notes: "" });
+      const p = store.addPatient({
+        name: newName.trim(),
+        phone: newPhone.trim(),
+        email: newEmail.trim(),
+        cedula: "",
+        address: "",
+        notes: "",
+      });
       pid = p.id;
     }
-    if (!pid) return;
 
     const data = { patientId: pid, date, time, duration: 30, notes, status, paid, amount };
     if (isEdit && appointment) {
@@ -89,21 +112,31 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
     }
   };
 
+  const patientName = appointment ? store.getPatient(appointment.patientId)?.name : undefined;
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-[400px] p-6">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar Cita" : "Nueva Cita"}</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[420px] p-0 gap-0 overflow-hidden">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b border-border/60">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="text-base">{isEdit ? "Editar Cita" : "Nueva Cita"}</DialogTitle>
+            <DialogDescription className="text-xs">
+              {isEdit
+                ? `Modificar la cita de ${patientName || "paciente"}`
+                : "Completa los datos para agendar una cita"}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <div className="space-y-5 mt-2">
-          {/* Patient selection */}
+        <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
+          {/* ── Section: Patient ── */}
           {!showNewPatient ? (
-            <div className="space-y-2">
-              <Label className="text-sm">Paciente</Label>
-              <Select value={patientId} onValueChange={setPatientId}>
-                <SelectTrigger className="h-10 rounded-xl">
-                  <SelectValue placeholder="Elegir paciente..." />
+            <fieldset className="space-y-2">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Paciente</Label>
+              <Select value={patientId} onValueChange={(v) => { setPatientId(v); setErrors((e) => ({ ...e, patient: "" })); }}>
+                <SelectTrigger className={cn("h-10 rounded-xl", errors.patient && "border-destructive ring-1 ring-destructive/30")}>
+                  <SelectValue placeholder="Seleccionar paciente..." />
                 </SelectTrigger>
                 <SelectContent>
                   {store.patients.map((p) => (
@@ -111,59 +144,103 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
                   ))}
                 </SelectContent>
               </Select>
-              <button onClick={() => setShowNewPatient(true)} className="flex items-center gap-1.5 text-xs text-primary hover:underline mt-1">
-                <UserPlus className="h-3 w-3" /> Nuevo paciente
+              {errors.patient && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3" />{errors.patient}</p>}
+              <button
+                type="button"
+                onClick={() => setShowNewPatient(true)}
+                className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors font-medium mt-1"
+              >
+                <UserPlus className="h-3.5 w-3.5" /> Crear nuevo paciente
               </button>
-            </div>
+            </fieldset>
           ) : (
-            <div className="space-y-3 rounded-xl border border-border/60 p-4 bg-muted/30">
-              <p className="text-sm font-medium">Nuevo Paciente</p>
-              <Input placeholder="Nombre completo" value={newName} onChange={(e) => setNewName(e.target.value)} className="h-10 rounded-xl" />
-              <Input placeholder="Teléfono" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} className="h-10 rounded-xl" />
-              <button onClick={() => setShowNewPatient(false)} className="text-xs text-primary hover:underline">← Paciente existente</button>
-            </div>
+            <fieldset className="space-y-3 rounded-xl border border-primary/20 bg-primary/[0.03] p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-primary uppercase tracking-wide">Nuevo Paciente</span>
+                <button
+                  type="button"
+                  onClick={() => { setShowNewPatient(false); setErrors((e) => ({ ...e, newName: "" })); }}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                >
+                  <ArrowLeft className="h-3 w-3" /> Existente
+                </button>
+              </div>
+              <div className="space-y-1.5">
+                <Input
+                  placeholder="Nombre completo *"
+                  value={newName}
+                  onChange={(e) => { setNewName(e.target.value); setErrors((er) => ({ ...er, newName: "" })); }}
+                  className={cn("h-10 rounded-xl", errors.newName && "border-destructive ring-1 ring-destructive/30")}
+                  autoFocus
+                />
+                {errors.newName && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3" />{errors.newName}</p>}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="Teléfono" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} className="h-10 rounded-xl" />
+                <Input placeholder="Email" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="h-10 rounded-xl" />
+              </div>
+            </fieldset>
           )}
 
-          {/* Date & time */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Fecha</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-10 rounded-xl" />
+          {/* ── Section: Date & Time ── */}
+          <fieldset className="space-y-2">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha y hora</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(e) => { setDate(e.target.value); setErrors((er) => ({ ...er, date: "" })); }}
+                  className={cn("h-10 rounded-xl", errors.date && "border-destructive ring-1 ring-destructive/30")}
+                />
+                {errors.date && <p className="text-xs text-destructive">{errors.date}</p>}
+              </div>
+              <div className="space-y-1">
+                <Input
+                  type="time"
+                  value={time}
+                  onChange={(e) => { setTime(e.target.value); setErrors((er) => ({ ...er, time: "" })); }}
+                  className={cn("h-10 rounded-xl", errors.time && "border-destructive ring-1 ring-destructive/30")}
+                />
+                {errors.time && <p className="text-xs text-destructive">{errors.time}</p>}
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">Hora</Label>
-              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-10 rounded-xl" />
+          </fieldset>
+
+          {/* ── Section: Amount + Notes ── */}
+          <fieldset className="space-y-3">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Detalles</Label>
+            <div className="space-y-1">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+                <Input
+                  type="number"
+                  value={amount || ""}
+                  onChange={(e) => setAmount(+e.target.value)}
+                  className="h-10 rounded-xl pl-7"
+                  placeholder="0.00"
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground">Monto del tratamiento o consulta</p>
             </div>
-          </div>
+            <Textarea
+              placeholder="Notas: limpieza, corona, seguimiento..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              className="rounded-xl resize-none text-sm"
+            />
+          </fieldset>
 
-          {/* Amount */}
-          <div className="space-y-1.5">
-            <Label className="text-sm">Monto (€)</Label>
-            <Input type="number" value={amount} onChange={(e) => setAmount(+e.target.value)} className="h-10 rounded-xl" placeholder="0" />
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-1.5">
-            <Label className="text-sm">Notas <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-            <Textarea placeholder="ej. limpieza, corona, seguimiento..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="rounded-xl resize-none" />
-          </div>
-
-          {/* Paid toggle */}
+          {/* ── Section: Status & Payment (Edit only) ── */}
           {isEdit && (
-            <div className="flex items-center justify-between rounded-xl bg-muted/40 px-4 py-3">
-              <Label className="text-sm">Pagado</Label>
-              <Switch checked={paid} onCheckedChange={setPaid} />
-            </div>
-          )}
-
-          {/* Status buttons */}
-          {isEdit && (
-            <div className="space-y-1.5">
-              <Label className="text-sm">Estado</Label>
+            <fieldset className="space-y-3">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Estado</Label>
               <div className="grid grid-cols-4 gap-1.5">
                 {(Object.keys(STATUS_CONFIG) as AppointmentStatus[]).map((s) => (
                   <button
                     key={s}
+                    type="button"
                     onClick={() => setStatus(s)}
                     className={cn(
                       "py-2 rounded-lg text-xs font-medium transition-all",
@@ -174,21 +251,38 @@ export function AppointmentModal({ open, onClose, appointment, defaultDate, defa
                   </button>
                 ))}
               </div>
-            </div>
-          )}
 
-          {/* Actions */}
-          <div className="flex gap-2 pt-2">
-            {isEdit && (
-              <Button variant="ghost" size="icon" className="text-destructive/70 hover:text-destructive shrink-0 rounded-xl" onClick={handleDelete}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-            <Button variant="outline" onClick={onClose} className="flex-1 h-10 rounded-xl">Cancelar</Button>
-            <Button onClick={handleSave} className="flex-1 h-10 rounded-xl font-medium">
-              {isEdit ? "Guardar" : "Crear Cita"}
+              <div className="flex items-center justify-between rounded-xl bg-muted/40 px-4 py-3 mt-2">
+                <div>
+                  <p className="text-sm font-medium">Pagado</p>
+                  <p className="text-[11px] text-muted-foreground">Marcar como cobrado</p>
+                </div>
+                <Switch checked={paid} onCheckedChange={setPaid} />
+              </div>
+            </fieldset>
+          )}
+        </div>
+
+        {/* ── Footer actions ── */}
+        <div className="px-6 py-4 border-t border-border/60 bg-muted/20 flex items-center gap-2">
+          {isEdit && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="text-destructive/60 hover:text-destructive hover:bg-destructive/10 shrink-0 rounded-xl"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-4 w-4" />
             </Button>
-          </div>
+          )}
+          <div className="flex-1" />
+          <Button type="button" variant="outline" onClick={onClose} className="h-9 rounded-xl text-sm px-4">
+            Cancelar
+          </Button>
+          <Button type="button" onClick={handleSave} className="h-9 rounded-xl text-sm px-5 font-medium">
+            {isEdit ? "Guardar cambios" : "Agendar cita"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
