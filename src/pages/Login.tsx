@@ -4,15 +4,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { Eye, EyeOff, Loader2, AlertCircle, Stethoscope } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Stethoscope, ArrowLeft } from "lucide-react";
+
+type Mode = "login" | "register" | "forgot";
 
 export default function Login() {
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, forgotPassword, user } = useAuth();
   const navigate = useNavigate();
 
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -20,67 +20,55 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [forgotMode, setForgotMode] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotLoading, setForgotLoading] = useState(false);
-  const [forgotSent, setForgotSent] = useState(false);
 
-  // If already logged in, redirect
   if (user) {
     navigate("/", { replace: true });
     return null;
   }
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!forgotEmail.trim()) { setError("Ingrese su correo electrónico."); return; }
-    setForgotLoading(true);
-    setError("");
-    const { error } = await signIn("__forgot__", ""); // dummy - we use forgotPassword
-    // Actually use the forgotPassword from context:
-    const res = await (signIn as any).__proto__; // no, let's just call supabase directly
-    setForgotLoading(false);
-  };
+  const switchMode = (m: Mode) => { setMode(m); setError(""); setSuccess(""); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-
-    if (!email.trim() || !password.trim()) {
-      setError("Complete todos los campos obligatorios.");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres.");
-      return;
-    }
-
     setLoading(true);
+
+    if (mode === "forgot") {
+      if (!email.trim()) { setError("Ingrese su correo electrónico."); setLoading(false); return; }
+      const { error } = await forgotPassword(email);
+      if (error) setError(error);
+      else setSuccess("Se envió un enlace de recuperación a su correo electrónico.");
+      setLoading(false);
+      return;
+    }
+
+    if (!email.trim() || !password.trim()) { setError("Complete todos los campos obligatorios."); setLoading(false); return; }
+    if (password.length < 6) { setError("La contraseña debe tener al menos 6 caracteres."); setLoading(false); return; }
 
     if (mode === "login") {
       const { error } = await signIn(email, password);
-      if (error) {
-        setError(error);
-      } else {
-        navigate("/", { replace: true });
-      }
+      if (error) setError(error);
+      else navigate("/", { replace: true });
     } else {
-      if (!displayName.trim()) {
-        setError("Ingrese su nombre completo.");
-        setLoading(false);
-        return;
-      }
+      if (!displayName.trim()) { setError("Ingrese su nombre completo."); setLoading(false); return; }
       const { error } = await signUp(email, password, displayName.trim());
-      if (error) {
-        setError(error);
-      } else {
-        setSuccess("Cuenta creada. Revise su correo para confirmar el registro.");
-      }
+      if (error) setError(error);
+      else setSuccess("Cuenta creada. Revise su correo para confirmar el registro.");
     }
-
     setLoading(false);
+  };
+
+  const titles: Record<Mode, string> = {
+    login: "Iniciar sesión",
+    register: "Crear cuenta",
+    forgot: "Recuperar contraseña",
+  };
+
+  const subtitles: Record<Mode, string> = {
+    login: "Ingrese sus credenciales para acceder al sistema.",
+    register: "Complete los datos para registrarse en el sistema.",
+    forgot: "Ingrese su correo electrónico y le enviaremos un enlace para restablecer su contraseña.",
   };
 
   return (
@@ -106,9 +94,7 @@ export default function Login() {
             <FeatureItem text="Gestión de citas, pagos y notas clínicas" />
             <FeatureItem text="Auditoría y versionamiento de registros" />
           </div>
-          <p className="text-xs text-muted-foreground/60 pt-8">
-            DentFlow · Sistema Clínico Odontológico
-          </p>
+          <p className="text-xs text-muted-foreground/60 pt-8">DentFlow · Sistema Clínico Odontológico</p>
         </div>
       </div>
 
@@ -124,17 +110,15 @@ export default function Login() {
           </div>
 
           <div className="space-y-2 text-center lg:text-left">
-            <h2 className="text-xl font-bold text-foreground">
-              {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {mode === "login"
-                ? "Ingrese sus credenciales para acceder al sistema."
-                : "Complete los datos para registrarse en el sistema."}
-            </p>
+            {mode === "forgot" && (
+              <button onClick={() => switchMode("login")} className="flex items-center gap-1 text-sm text-primary hover:underline mb-2">
+                <ArrowLeft className="h-3.5 w-3.5" /> Volver
+              </button>
+            )}
+            <h2 className="text-xl font-bold text-foreground">{titles[mode]}</h2>
+            <p className="text-sm text-muted-foreground">{subtitles[mode]}</p>
           </div>
 
-          {/* Error */}
           {error && (
             <div className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3.5">
               <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
@@ -142,9 +126,9 @@ export default function Login() {
             </div>
           )}
 
-          {/* Success */}
           {success && (
             <div className="flex items-start gap-2.5 rounded-xl border border-success/20 bg-success/5 p-3.5">
+              <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
               <p className="text-sm text-success">{success}</p>
             </div>
           )}
@@ -153,75 +137,53 @@ export default function Login() {
             {mode === "register" && (
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground">Nombre completo</Label>
-                <Input
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Dr. Juan Pérez"
-                  className="h-11 rounded-xl text-sm"
-                  autoComplete="name"
-                />
+                <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Dr. Juan Pérez" className="h-11 rounded-xl text-sm" autoComplete="name" />
               </div>
             )}
 
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground">Correo electrónico</Label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setError(""); }}
-                placeholder="doctor@clinica.com"
-                className="h-11 rounded-xl text-sm"
-                autoComplete="email"
-                autoFocus
-              />
+              <Input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }} placeholder="doctor@clinica.com" className="h-11 rounded-xl text-sm" autoComplete="email" autoFocus />
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">Contraseña</Label>
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setError(""); }}
-                  placeholder="••••••••"
-                  className="h-11 rounded-xl text-sm pr-10"
-                  autoComplete={mode === "login" ? "current-password" : "new-password"}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+            {mode !== "forgot" && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium text-muted-foreground">Contraseña</Label>
+                  {mode === "login" && (
+                    <button type="button" onClick={() => switchMode("forgot")} className="text-xs text-primary hover:underline">
+                      ¿Olvidó su contraseña?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                    placeholder="••••••••"
+                    className="h-11 rounded-xl text-sm pr-10"
+                    autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" tabIndex={-1}>
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-11 rounded-xl text-sm font-semibold"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : mode === "login" ? (
-                "Iniciar sesión"
-              ) : (
-                "Crear cuenta"
-              )}
+            <Button type="submit" disabled={loading} className="w-full h-11 rounded-xl text-sm font-semibold">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "forgot" ? "Enviar enlace" : mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
             </Button>
           </form>
 
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); setSuccess(""); }}
-              className="text-sm text-primary font-medium hover:underline"
-            >
-              {mode === "login" ? "¿No tiene cuenta? Regístrese" : "¿Ya tiene cuenta? Inicie sesión"}
-            </button>
-          </div>
+          {mode !== "forgot" && (
+            <div className="text-center">
+              <button type="button" onClick={() => switchMode(mode === "login" ? "register" : "login")} className="text-sm text-primary font-medium hover:underline">
+                {mode === "login" ? "¿No tiene cuenta? Regístrese" : "¿Ya tiene cuenta? Inicie sesión"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
