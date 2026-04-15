@@ -496,7 +496,7 @@ function ClinicalHubTab({ patientId }: { patientId: string }) {
                 <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-9 text-xs justify-start" onClick={() => navigate(`/patients/${patientId}/historia/${historia.id}`)}>
                   <ClipboardList className="h-3.5 w-3.5 text-primary" /> Ver historia completa
                 </Button>
-                <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-9 text-xs justify-start" onClick={() => toast.info("Módulo de notas en desarrollo")}>
+                <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-9 text-xs justify-start" onClick={() => navigate(`/notes?patient=${patientId}`)}>
                   <StickyNote className="h-3.5 w-3.5 text-primary" /> Nueva nota corta
                 </Button>
                 <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-9 text-xs justify-start" onClick={() => navigate("/history")}>
