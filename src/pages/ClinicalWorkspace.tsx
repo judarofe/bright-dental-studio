@@ -47,7 +47,7 @@ import {
   Droplets,
 } from "lucide-react";
 
-type SectionId = "motivo" | "antecedentes" | "examen" | "exploracion" | "diagnosticos" | "odontograma" | "plan" | "prescripciones" | "notas";
+type SectionId = "motivo" | "antecedentes" | "examen" | "exploracion" | "diagnosticos" | "odontograma" | "plan" | "prescripciones" | "notas" | "cierre";
 
 const SECTIONS: { id: SectionId; label: string; icon: typeof ClipboardList }[] = [
   { id: "motivo", label: "Motivo y anamnesis", icon: ClipboardList },
@@ -59,6 +59,7 @@ const SECTIONS: { id: SectionId; label: string; icon: typeof ClipboardList }[] =
   { id: "plan", label: "Plan de tratamiento", icon: CheckCircle2 },
   { id: "prescripciones", label: "Prescripciones", icon: Pill },
   { id: "notas", label: "Notas", icon: StickyNote },
+  { id: "cierre", label: "Cierre y conducta", icon: Lock },
 ];
 
 export default function ClinicalWorkspace() {
