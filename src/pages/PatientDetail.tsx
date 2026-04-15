@@ -21,6 +21,8 @@ import {
   Plus,
   User,
   Save,
+  Mic,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
