@@ -489,6 +489,21 @@ export default function ClinicalWorkspace() {
             />
           )}
 
+          {activeSection === "revision" && (
+            <RevisionFinalSection
+              historia={historia}
+              patient={{ name: patient.name, phone: patient.phone, cedula: patient.cedula }}
+              diagnosticos={diagnosticos}
+              odontograma={odontograma}
+              notas={notas}
+              checklistItems={checklistItems}
+              onNavigateSection={(s) => setActiveSection(s as SectionId)}
+              onClose={handleClose}
+              onSaveDraft={handleSaveDraft}
+              onPrint={handlePrint}
+            />
+          )}
+
           {/* Validation checklist — always visible */}
           <ValidationChecklist
             title="Estado de completitud"
