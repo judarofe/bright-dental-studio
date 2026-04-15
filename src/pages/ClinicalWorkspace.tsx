@@ -25,6 +25,7 @@ import {
   Printer,
   History,
   ClipboardList,
+  ClipboardCheck,
   Stethoscope,
   Activity,
   Pill,
