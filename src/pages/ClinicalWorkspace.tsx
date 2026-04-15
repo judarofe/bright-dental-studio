@@ -236,37 +236,42 @@ export default function ClinicalWorkspace() {
         {/* Content area */}
         <div className="flex-1 min-w-0 space-y-4">
           {activeSection === "motivo" && (
-            <SectionCard title="Motivo de consulta" icon={ClipboardList}>
-              <Textarea
-                defaultValue={historia.detalle.motivoConsulta}
-                placeholder="Describa el motivo de consulta del paciente…"
-                rows={4}
-                className="rounded-xl resize-none text-sm"
+            <div className="space-y-4">
+              <ClinicalTextField
+                title="Motivo de consulta"
+                icon={ClipboardList}
+                value={historia.detalle.motivoConsulta}
+                placeholder="¿Por qué acude el paciente hoy?"
+                rows={3}
+                required
+                templates={[
+                  "Control periódico y profilaxis",
+                  "Dolor dental agudo",
+                  "Valoración para tratamiento restaurador",
+                  "Consulta de urgencia",
+                ]}
               />
-            </SectionCard>
+              <ClinicalTextField
+                title="Anamnesis"
+                icon={Clipboard}
+                value={historia.detalle.anamnesis}
+                placeholder="Describa la historia de la enfermedad actual: inicio, evolución, síntomas, factores agravantes o atenuantes…"
+                rows={5}
+                required
+                templates={[
+                  "Paciente refiere dolor de tipo [pulsátil/sordo/agudo] en [zona] desde hace [tiempo]. [Aumenta/disminuye] con [estímulo]. Sin/con irradiación.",
+                  "Acude para control de rutina. Sin sintomatología actual. Última visita hace [tiempo].",
+                ]}
+              />
+            </div>
           )}
 
           {activeSection === "antecedentes" && (
             <div className="space-y-4">
-              <SectionCard title="Antecedentes médicos" icon={FileText}>
-                <Textarea
-                  defaultValue={historia.detalle.antecedentesMedicos}
-                  placeholder="Enfermedades previas, cirugías, alergias…"
-                  rows={4}
-                  className="rounded-xl resize-none text-sm"
-                />
-              </SectionCard>
-              <SectionCard title="Antecedentes odontológicos" icon={FileText}>
-                <Textarea
-                  defaultValue={historia.detalle.antecedentesOdontologicos}
-                  placeholder="Historial de tratamientos dentales previos…"
-                  rows={3}
-                  className="rounded-xl resize-none text-sm"
-                />
-              </SectionCard>
+              {/* Clasificación clínica — always visible */}
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-5 space-y-3">
-                  <SectionHeader title="Clasificación clínica" size="sm" />
+                  <SectionHeader title="Clasificación clínica" size="sm" icon={ListChecks} />
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">ASA</Label>
@@ -287,6 +292,67 @@ export default function ClinicalWorkspace() {
                   </div>
                 </CardContent>
               </Card>
+
+              <ClinicalTextField
+                title="Antecedentes médicos personales"
+                icon={Heart}
+                value={historia.detalle.antecedentesMedicos}
+                placeholder="Enfermedades previas, cirugías, hospitalizaciones, alergias medicamentosas…"
+                rows={4}
+                required
+                templates={[
+                  "Sin antecedentes médicos relevantes. Niega alergias medicamentosas. Niega cirugías previas. Niega hospitalizaciones.",
+                  "Paciente con antecedente de [enfermedad] diagnosticada en [año]. En tratamiento con [medicamento]. Alergia a [sustancia].",
+                ]}
+              />
+
+              <ClinicalTextField
+                title="Antecedentes odontológicos"
+                icon={Stethoscope}
+                value={historia.detalle.antecedentesOdontologicos}
+                placeholder="Historial de tratamientos dentales previos, experiencias con anestesia, complicaciones…"
+                rows={3}
+                templates={[
+                  "Sin tratamientos odontológicos previos significativos. Niega complicaciones con anestesia local.",
+                  "Antecedentes de [endodoncia/exodoncia/restauraciones] en piezas [números]. Última visita odontológica hace [tiempo].",
+                ]}
+              />
+
+              <ClinicalTextField
+                title="Antecedentes familiares"
+                icon={Users}
+                value={historia.detalle.antecedentesFamiliares}
+                placeholder="Enfermedades hereditarias, condiciones familiares relevantes…"
+                rows={3}
+                templates={[
+                  "Sin antecedentes familiares relevantes para la salud oral.",
+                  "Antecedentes familiares de [diabetes/hipertensión/enfermedad periodontal/cáncer oral] en [parentesco].",
+                ]}
+              />
+
+              <ClinicalTextField
+                title="Hábitos"
+                icon={Cigarette}
+                value={historia.detalle.habitos}
+                placeholder="Tabaquismo, bruxismo, onicofagia, respiración oral, dieta cariogénica…"
+                rows={3}
+                templates={[
+                  "Niega tabaquismo, alcoholismo y consumo de sustancias. Sin hábitos parafuncionales. Dieta balanceada.",
+                  "Bruxismo [diurno/nocturno]. [Usa/No usa] placa oclusal. Tabaquismo: [cigarrillos/día]. Consumo de [café/bebidas azucaradas]: [frecuencia].",
+                ]}
+              />
+
+              <ClinicalTextField
+                title="Revisión por sistemas"
+                icon={Brain}
+                value={historia.detalle.revisionSistemas}
+                placeholder="Cardiovascular, respiratorio, endocrino, digestivo, neurológico, musculoesquelético…"
+                rows={4}
+                templates={[
+                  "Cardiovascular: normal. Respiratorio: normal. Endocrino: normal. Digestivo: normal. Neurológico: normal. Musculoesquelético: normal. Genitourinario: normal.",
+                  "Cardiovascular: [hallazgo]. Respiratorio: [hallazgo]. Endocrino: [hallazgo]. Digestivo: [hallazgo]. Sin otros hallazgos relevantes.",
+                ]}
+              />
             </div>
           )}
 
