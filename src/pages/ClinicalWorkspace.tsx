@@ -5,6 +5,7 @@ import { ClinicalStatusBadge, ClinicalAlert, SectionHeader, ValidationChecklist 
 import { OdontogramEditor } from "@/components/clinical/OdontogramEditor";
 import { DiagnosticosSection } from "@/components/clinical/DiagnosticosSection";
 import { ConductaCierreSection } from "@/components/clinical/ConductaCierreSection";
+import { RevisionFinalSection } from "@/components/clinical/RevisionFinalSection";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -48,7 +49,7 @@ import {
   Droplets,
 } from "lucide-react";
 
-type SectionId = "motivo" | "antecedentes" | "examen" | "exploracion" | "diagnosticos" | "odontograma" | "plan" | "prescripciones" | "notas" | "cierre";
+type SectionId = "motivo" | "antecedentes" | "examen" | "exploracion" | "diagnosticos" | "odontograma" | "plan" | "prescripciones" | "notas" | "cierre" | "revision";
 
 const SECTIONS: { id: SectionId; label: string; icon: typeof ClipboardList }[] = [
   { id: "motivo", label: "Motivo y anamnesis", icon: ClipboardList },
@@ -61,6 +62,7 @@ const SECTIONS: { id: SectionId; label: string; icon: typeof ClipboardList }[] =
   { id: "prescripciones", label: "Prescripciones", icon: Pill },
   { id: "notas", label: "Notas", icon: StickyNote },
   { id: "cierre", label: "Cierre y conducta", icon: Lock },
+  { id: "revision", label: "Revisión final", icon: ClipboardCheck },
 ];
 
 export default function ClinicalWorkspace() {
