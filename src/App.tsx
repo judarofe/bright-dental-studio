@@ -16,6 +16,7 @@ import QuickNotes from "./pages/QuickNotes";
 import History from "./pages/History";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import ClinicalWorkspace from "./pages/ClinicalWorkspace";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
