@@ -119,7 +119,10 @@ export default function ClinicalWorkspace() {
   // Checklist items derived from historia
   const checklistItems = [
     { label: "Motivo de consulta registrado", completed: !!historia.detalle.motivoConsulta, required: true as const },
+    { label: "Anamnesis completada", completed: !!historia.detalle.anamnesis, required: true as const },
     { label: "Antecedentes médicos completos", completed: !!historia.detalle.antecedentesMedicos, required: true as const },
+    { label: "Hábitos registrados", completed: !!historia.detalle.habitos },
+    { label: "Revisión por sistemas", completed: !!historia.detalle.revisionSistemas },
     { label: "Exploración clínica realizada", completed: !!historia.detalle.exploracionClinica, required: true as const },
     { label: "Diagnóstico principal", completed: diagnosticos.length > 0 },
     { label: "Plan de tratamiento definido", completed: !!historia.detalle.planTratamiento },
