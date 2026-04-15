@@ -4,8 +4,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { StoreProvider } from "@/data/StoreContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
 import { FloatingAction } from "@/components/FloatingAction";
+import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Patients from "./pages/Patients";
@@ -18,6 +21,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import ClinicalWorkspace from "./pages/ClinicalWorkspace";
 import NotFound from "./pages/NotFound";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -25,27 +29,42 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <StoreProvider>
-        <BrowserRouter>
-          <AppLayout>
+      <AuthProvider>
+        <StoreProvider>
+          <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/agenda" element={<Agenda />} />
-              <Route path="/patients" element={<Patients />} />
-              <Route path="/patients/:id" element={<PatientDetail />} />
-              <Route path="/payments" element={<Payments />} />
-              <Route path="/clinical" element={<ClinicalHistory />} />
-              <Route path="/notes" element={<QuickNotes />} />
-              <Route path="/history" element={<History />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/patients/:patientId/historia/:historiaId" element={<ClinicalWorkspace />} />
-              <Route path="*" element={<NotFound />} />
+              {/* Public */}
+              <Route path="/login" element={<Login />} />
+
+              {/* Protected — inside AppLayout */}
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/agenda" element={<Agenda />} />
+                        <Route path="/patients" element={<Patients />} />
+                        <Route path="/patients/:id" element={<PatientDetail />} />
+                        <Route path="/payments" element={<Payments />} />
+                        <Route path="/clinical" element={<ClinicalHistory />} />
+                        <Route path="/notes" element={<QuickNotes />} />
+                        <Route path="/history" element={<History />} />
+                        <Route path="/reports" element={<Reports />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/patients/:patientId/historia/:historiaId" element={<ClinicalWorkspace />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </AppLayout>
+                    <FloatingAction />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
-          </AppLayout>
-          <FloatingAction />
-        </BrowserRouter>
-      </StoreProvider>
+          </BrowserRouter>
+        </StoreProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
