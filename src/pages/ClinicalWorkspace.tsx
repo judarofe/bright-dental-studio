@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/data/StoreContext";
 import { ClinicalStatusBadge, ClinicalAlert, SectionHeader, ValidationChecklist } from "@/components/clinical";
@@ -8,6 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -28,12 +30,20 @@ import {
   User,
   Mic,
   Sparkles,
+  ChevronDown,
+  ListChecks,
+  Heart,
+  Brain,
+  Cigarette,
+  Clipboard,
+  FileQuestion,
+  Users,
 } from "lucide-react";
 
 type SectionId = "motivo" | "antecedentes" | "exploracion" | "diagnosticos" | "odontograma" | "plan" | "prescripciones" | "notas";
 
 const SECTIONS: { id: SectionId; label: string; icon: typeof ClipboardList }[] = [
-  { id: "motivo", label: "Motivo de consulta", icon: ClipboardList },
+  { id: "motivo", label: "Motivo y anamnesis", icon: ClipboardList },
   { id: "antecedentes", label: "Antecedentes", icon: FileText },
   { id: "exploracion", label: "Exploración", icon: Stethoscope },
   { id: "diagnosticos", label: "Diagnósticos", icon: AlertTriangle },
@@ -109,7 +119,10 @@ export default function ClinicalWorkspace() {
   // Checklist items derived from historia
   const checklistItems = [
     { label: "Motivo de consulta registrado", completed: !!historia.detalle.motivoConsulta, required: true as const },
+    { label: "Anamnesis completada", completed: !!historia.detalle.anamnesis, required: true as const },
     { label: "Antecedentes médicos completos", completed: !!historia.detalle.antecedentesMedicos, required: true as const },
+    { label: "Hábitos registrados", completed: !!historia.detalle.habitos },
+    { label: "Revisión por sistemas", completed: !!historia.detalle.revisionSistemas },
     { label: "Exploración clínica realizada", completed: !!historia.detalle.exploracionClinica, required: true as const },
     { label: "Diagnóstico principal", completed: diagnosticos.length > 0 },
     { label: "Plan de tratamiento definido", completed: !!historia.detalle.planTratamiento },
@@ -223,37 +236,42 @@ export default function ClinicalWorkspace() {
         {/* Content area */}
         <div className="flex-1 min-w-0 space-y-4">
           {activeSection === "motivo" && (
-            <SectionCard title="Motivo de consulta" icon={ClipboardList}>
-              <Textarea
-                defaultValue={historia.detalle.motivoConsulta}
-                placeholder="Describa el motivo de consulta del paciente…"
-                rows={4}
-                className="rounded-xl resize-none text-sm"
+            <div className="space-y-4">
+              <ClinicalTextField
+                title="Motivo de consulta"
+                icon={ClipboardList}
+                value={historia.detalle.motivoConsulta}
+                placeholder="¿Por qué acude el paciente hoy?"
+                rows={3}
+                required
+                templates={[
+                  "Control periódico y profilaxis",
+                  "Dolor dental agudo",
+                  "Valoración para tratamiento restaurador",
+                  "Consulta de urgencia",
+                ]}
               />
-            </SectionCard>
+              <ClinicalTextField
+                title="Anamnesis"
+                icon={Clipboard}
+                value={historia.detalle.anamnesis}
+                placeholder="Describa la historia de la enfermedad actual: inicio, evolución, síntomas, factores agravantes o atenuantes…"
+                rows={5}
+                required
+                templates={[
+                  "Paciente refiere dolor de tipo [pulsátil/sordo/agudo] en [zona] desde hace [tiempo]. [Aumenta/disminuye] con [estímulo]. Sin/con irradiación.",
+                  "Acude para control de rutina. Sin sintomatología actual. Última visita hace [tiempo].",
+                ]}
+              />
+            </div>
           )}
 
           {activeSection === "antecedentes" && (
             <div className="space-y-4">
-              <SectionCard title="Antecedentes médicos" icon={FileText}>
-                <Textarea
-                  defaultValue={historia.detalle.antecedentesMedicos}
-                  placeholder="Enfermedades previas, cirugías, alergias…"
-                  rows={4}
-                  className="rounded-xl resize-none text-sm"
-                />
-              </SectionCard>
-              <SectionCard title="Antecedentes odontológicos" icon={FileText}>
-                <Textarea
-                  defaultValue={historia.detalle.antecedentesOdontologicos}
-                  placeholder="Historial de tratamientos dentales previos…"
-                  rows={3}
-                  className="rounded-xl resize-none text-sm"
-                />
-              </SectionCard>
+              {/* Clasificación clínica — always visible */}
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-5 space-y-3">
-                  <SectionHeader title="Clasificación clínica" size="sm" />
+                  <SectionHeader title="Clasificación clínica" size="sm" icon={ListChecks} />
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">ASA</Label>
@@ -274,6 +292,67 @@ export default function ClinicalWorkspace() {
                   </div>
                 </CardContent>
               </Card>
+
+              <ClinicalTextField
+                title="Antecedentes médicos personales"
+                icon={Heart}
+                value={historia.detalle.antecedentesMedicos}
+                placeholder="Enfermedades previas, cirugías, hospitalizaciones, alergias medicamentosas…"
+                rows={4}
+                required
+                templates={[
+                  "Sin antecedentes médicos relevantes. Niega alergias medicamentosas. Niega cirugías previas. Niega hospitalizaciones.",
+                  "Paciente con antecedente de [enfermedad] diagnosticada en [año]. En tratamiento con [medicamento]. Alergia a [sustancia].",
+                ]}
+              />
+
+              <ClinicalTextField
+                title="Antecedentes odontológicos"
+                icon={Stethoscope}
+                value={historia.detalle.antecedentesOdontologicos}
+                placeholder="Historial de tratamientos dentales previos, experiencias con anestesia, complicaciones…"
+                rows={3}
+                templates={[
+                  "Sin tratamientos odontológicos previos significativos. Niega complicaciones con anestesia local.",
+                  "Antecedentes de [endodoncia/exodoncia/restauraciones] en piezas [números]. Última visita odontológica hace [tiempo].",
+                ]}
+              />
+
+              <ClinicalTextField
+                title="Antecedentes familiares"
+                icon={Users}
+                value={historia.detalle.antecedentesFamiliares}
+                placeholder="Enfermedades hereditarias, condiciones familiares relevantes…"
+                rows={3}
+                templates={[
+                  "Sin antecedentes familiares relevantes para la salud oral.",
+                  "Antecedentes familiares de [diabetes/hipertensión/enfermedad periodontal/cáncer oral] en [parentesco].",
+                ]}
+              />
+
+              <ClinicalTextField
+                title="Hábitos"
+                icon={Cigarette}
+                value={historia.detalle.habitos}
+                placeholder="Tabaquismo, bruxismo, onicofagia, respiración oral, dieta cariogénica…"
+                rows={3}
+                templates={[
+                  "Niega tabaquismo, alcoholismo y consumo de sustancias. Sin hábitos parafuncionales. Dieta balanceada.",
+                  "Bruxismo [diurno/nocturno]. [Usa/No usa] placa oclusal. Tabaquismo: [cigarrillos/día]. Consumo de [café/bebidas azucaradas]: [frecuencia].",
+                ]}
+              />
+
+              <ClinicalTextField
+                title="Revisión por sistemas"
+                icon={Brain}
+                value={historia.detalle.revisionSistemas}
+                placeholder="Cardiovascular, respiratorio, endocrino, digestivo, neurológico, musculoesquelético…"
+                rows={4}
+                templates={[
+                  "Cardiovascular: normal. Respiratorio: normal. Endocrino: normal. Digestivo: normal. Neurológico: normal. Musculoesquelético: normal. Genitourinario: normal.",
+                  "Cardiovascular: [hallazgo]. Respiratorio: [hallazgo]. Endocrino: [hallazgo]. Digestivo: [hallazgo]. Sin otros hallazgos relevantes.",
+                ]}
+              />
             </div>
           )}
 
@@ -507,7 +586,7 @@ export default function ClinicalWorkspace() {
   );
 }
 
-/* ── Helper component ────────────────────────── */
+/* ── Helper components ───────────────────────── */
 
 function SectionCard({ title, icon: Icon, children }: { title: string; icon: typeof ClipboardList; children: React.ReactNode }) {
   return (
@@ -515,6 +594,105 @@ function SectionCard({ title, icon: Icon, children }: { title: string; icon: typ
       <CardContent className="p-5 space-y-3">
         <SectionHeader title={title} icon={Icon} size="sm" />
         {children}
+      </CardContent>
+    </Card>
+  );
+}
+
+interface ClinicalTextFieldProps {
+  title: string;
+  icon: typeof ClipboardList;
+  value: string;
+  placeholder: string;
+  rows?: number;
+  required?: boolean;
+  templates?: string[];
+}
+
+function ClinicalTextField({ title, icon: Icon, value, placeholder, rows = 4, required, templates }: ClinicalTextFieldProps) {
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [text, setText] = useState(value);
+  const filled = text.trim().length > 0;
+
+  const applyTemplate = (tpl: string) => {
+    setText(tpl);
+    setShowTemplates(false);
+    toast.success("Plantilla aplicada");
+  };
+
+  return (
+    <Card className="border-0 shadow-sm">
+      <CardContent className="p-5 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="h-8 w-8 rounded-lg bg-primary/8 flex items-center justify-center shrink-0">
+              <Icon className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-foreground tracking-tight">{title}</h3>
+              {required && (
+                <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-destructive/30 text-destructive font-normal">
+                  Obligatorio
+                </Badge>
+              )}
+              {filled && (
+                <div className="h-5 w-5 rounded-full bg-success/10 flex items-center justify-center">
+                  <CheckCircle2 className="h-3 w-3 text-success" />
+                </div>
+              )}
+            </div>
+          </div>
+          {templates && templates.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 h-7 text-[11px] text-muted-foreground hover:text-foreground"
+              onClick={() => setShowTemplates(!showTemplates)}
+            >
+              <FileQuestion className="h-3.5 w-3.5" />
+              Plantillas
+              <ChevronDown className={cn("h-3 w-3 transition-transform", showTemplates && "rotate-180")} />
+            </Button>
+          )}
+        </div>
+
+        {/* Templates panel */}
+        {showTemplates && templates && (
+          <div className="rounded-xl border border-dashed border-primary/20 bg-primary/[0.02] p-3 space-y-2">
+            <p className="text-[11px] font-medium text-muted-foreground">Seleccione una plantilla para autocompletar:</p>
+            {templates.map((tpl, i) => (
+              <button
+                key={i}
+                onClick={() => applyTemplate(tpl)}
+                className="w-full text-left p-2.5 rounded-lg bg-background border border-border/50 hover:border-primary/30 hover:bg-primary/[0.03] transition-colors text-xs text-foreground leading-relaxed"
+              >
+                {tpl}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <Textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={placeholder}
+          rows={rows}
+          className={cn(
+            "rounded-xl resize-none text-sm transition-colors",
+            !filled && required && "border-destructive/30 focus-visible:ring-destructive/30"
+          )}
+        />
+
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] text-muted-foreground">
+            {text.length > 0 ? `${text.length} caracteres` : "Sin contenido"}
+          </span>
+          {text !== value && (
+            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-normal bg-warning/10 text-warning border-0">
+              Sin guardar
+            </Badge>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
