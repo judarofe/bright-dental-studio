@@ -1,14 +1,21 @@
 import React, { createContext, useContext } from "react";
 import { useStore, Store } from "./store";
+import { useClinicalStore, ClinicalStore } from "./clinicalStore";
 
-const StoreContext = createContext<Store | null>(null);
+interface AppStoreValue extends Store {
+  clinical: ClinicalStore;
+}
+
+const StoreContext = createContext<AppStoreValue | null>(null);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const store = useStore();
-  return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
+  const clinical = useClinicalStore();
+  const value: AppStoreValue = { ...store, clinical };
+  return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
 
-export function useAppStore(): Store {
+export function useAppStore(): AppStoreValue {
   const ctx = useContext(StoreContext);
   if (!ctx) throw new Error("useAppStore must be used within StoreProvider");
   return ctx;
