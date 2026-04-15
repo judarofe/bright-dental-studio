@@ -419,61 +419,7 @@ export default function ClinicalWorkspace() {
           )}
 
           {activeSection === "odontograma" && (
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-5 space-y-3">
-                <SectionHeader title="Odontograma" icon={Activity} size="sm" />
-                {odontograma ? (
-                  <>
-                    <div className="flex flex-wrap gap-2">
-                      {odontograma.piezas.map((p) => (
-                        <div key={p.numero} className={cn(
-                          "flex flex-col items-center gap-0.5 px-2.5 py-2 rounded-lg text-xs border",
-                          p.condicion === "sano" ? "border-border/40 bg-muted/30" :
-                          p.condicion === "caries" ? "border-destructive/30 bg-destructive/5" :
-                          "border-primary/30 bg-primary/5"
-                        )}>
-                          <span className="font-mono font-bold text-sm">{p.numero}</span>
-                          <span className={cn(
-                            "capitalize text-[10px]",
-                            p.condicion === "caries" ? "text-destructive" :
-                            p.condicion === "ausente" ? "text-muted-foreground" :
-                            p.condicion === "sano" ? "text-muted-foreground" : "text-foreground"
-                          )}>
-                            {p.condicion}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    {odontograma.eventos.length > 0 && (
-                      <>
-                        <Separator />
-                        <SectionHeader title="Eventos registrados" size="sm" />
-                        <div className="space-y-1.5">
-                          {odontograma.eventos.map((e) => (
-                            <div key={e.id} className="flex items-center gap-3 text-xs py-1.5 px-3 rounded-lg bg-muted/30">
-                              <span className="font-mono font-bold w-8">{e.piezaNumero}</span>
-                              <span className="text-muted-foreground w-16">
-                                {new Date(e.fecha).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}
-                              </span>
-                              <span className="flex-1">{e.descripcion}</span>
-                              <span className={cn(
-                                "text-[10px] px-1.5 py-0.5 rounded-full capitalize",
-                                e.tipo === "procedimiento" ? "bg-primary/10 text-primary" :
-                                e.tipo === "hallazgo" ? "bg-warning/10 text-warning" : "bg-muted text-muted-foreground"
-                              )}>
-                                {e.tipo}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground py-4 text-center">No hay odontograma registrado.</p>
-                )}
-              </CardContent>
-            </Card>
+            <OdontogramEditor odontograma={odontograma} eventos={odontograma?.eventos ?? []} />
           )}
 
           {activeSection === "plan" && (
