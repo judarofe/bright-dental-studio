@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/StatusBadge";
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Receipt, X } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
@@ -56,17 +57,13 @@ export default function Payments() {
         <Card className="border-0 shadow-sm overflow-hidden">
           <CardContent className="p-0">
             {filtered.length === 0 ? (
-              <div className="py-14 text-center">
-                <Receipt className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  {dateFilter ? "No hay pagos en esta fecha" : "No se encontraron pagos"}
-                </p>
-                {dateFilter && (
-                  <Button variant="link" size="sm" onClick={() => setDateFilter("")} className="text-xs mt-1">
-                    Ver todos los pagos
-                  </Button>
-                )}
-              </div>
+              <EmptyState
+                icon={Receipt}
+                title={dateFilter ? "Sin pagos en esta fecha" : "Sin pagos registrados"}
+                description={dateFilter ? "No se encontraron pagos para el día seleccionado." : "Los pagos aparecerán aquí cuando se registren citas completadas."}
+                actionLabel={dateFilter ? "Ver todos los pagos" : undefined}
+                onAction={dateFilter ? () => setDateFilter("") : undefined}
+              />
             ) : (
               <div className="divide-y divide-border/60">
                 {/* Table header */}

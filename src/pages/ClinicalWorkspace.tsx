@@ -580,6 +580,17 @@ export default function ClinicalWorkspace() {
           )}
         </div>
       </div>
+
+      {/* Confirm close dialog */}
+      <ConfirmDialog
+        open={showCloseConfirm}
+        onConfirm={handleClose}
+        onCancel={() => setShowCloseConfirm(false)}
+        title="¿Cerrar esta historia clínica?"
+        description={`Se cerrará la historia de ${patient.name}. Una vez cerrada, no podrá editarse sin autorización administrativa.`}
+        confirmLabel="Cerrar historia"
+        variant="destructive"
+      />
     </div>
   );
 }
