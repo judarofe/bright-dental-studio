@@ -1,14 +1,16 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
+import { isProfileComplete, type AppRole } from "@/lib/permissions";
 
 interface Profile {
   id: string;
   user_id: string;
   display_name: string | null;
-  role: "admin" | "odontologo" | "asistente";
+  role: AppRole;
   especialidad: string | null;
   avatar_url: string | null;
+  activo: boolean;
 }
 
 interface AuthContextType {
@@ -16,9 +18,12 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  profileComplete: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,23 +34,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
       .select("*")
       .eq("user_id", userId)
       .single();
     setProfile(data as Profile | null);
-  };
+  }, []);
+
+  const refreshProfile = useCallback(async () => {
+    if (user) await fetchProfile(user.id);
+  }, [user, fetchProfile]);
 
   useEffect(() => {
-    // Set up auth listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          // Use setTimeout to avoid Supabase deadlock
           setTimeout(() => fetchProfile(session.user.id), 0);
         } else {
           setProfile(null);
@@ -54,7 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // THEN check existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -65,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchProfile]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -91,10 +97,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
     if (error) {
-      const msg =
-        error.message.includes("already registered")
-          ? "Este correo ya está registrado."
-          : "Error al registrar. Intente nuevamente.";
+      const msg = error.message.includes("already registered")
+        ? "Este correo ya está registrado."
+        : "Error al registrar. Intente nuevamente.";
       return { error: msg };
     }
     return { error: null };
@@ -105,8 +110,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   };
 
+  const forgotPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      return { error: "Error al enviar el correo. Intente nuevamente." };
+    }
+    return { error: null };
+  };
+
+  const profileComplete = isProfileComplete(profile);
+
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, profileComplete, signIn, signUp, signOut, refreshProfile, forgotPassword }}>
       {children}
     </AuthContext.Provider>
   );

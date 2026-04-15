@@ -10,6 +10,8 @@ import {
   Settings,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { useAuth } from "@/contexts/AuthContext";
+import { canAccessModule, type AppModule } from "@/lib/permissions";
 import {
   Sidebar,
   SidebarContent,
@@ -22,22 +24,29 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const mainItems = [
-  { title: "Inicio", url: "/", icon: LayoutDashboard },
-  { title: "Agenda", url: "/agenda", icon: CalendarDays },
-  { title: "Pacientes", url: "/patients", icon: Users },
-  { title: "Pagos", url: "/payments", icon: CreditCard },
+interface NavItem {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  module: AppModule;
+}
+
+const mainItems: NavItem[] = [
+  { title: "Inicio", url: "/", icon: LayoutDashboard, module: "dashboard" },
+  { title: "Agenda", url: "/agenda", icon: CalendarDays, module: "agenda" },
+  { title: "Pacientes", url: "/patients", icon: Users, module: "patients" },
+  { title: "Pagos", url: "/payments", icon: CreditCard, module: "payments" },
 ];
 
-const clinicalItems = [
-  { title: "Historia Odontológica", url: "/clinical", icon: HeartPulse },
-  { title: "Notas Cortas", url: "/notes", icon: StickyNote },
+const clinicalItems: NavItem[] = [
+  { title: "Historia Odontológica", url: "/clinical", icon: HeartPulse, module: "clinical" },
+  { title: "Notas Cortas", url: "/notes", icon: StickyNote, module: "notes" },
 ];
 
-const adminItems = [
-  { title: "Históricos", url: "/history", icon: Clock },
-  { title: "Reportes", url: "/reports", icon: BarChart3 },
-  { title: "Configuración", url: "/settings", icon: Settings },
+const adminItems: NavItem[] = [
+  { title: "Históricos", url: "/history", icon: Clock, module: "history" },
+  { title: "Reportes", url: "/reports", icon: BarChart3, module: "reports" },
+  { title: "Configuración", url: "/settings", icon: Settings, module: "settings" },
 ];
 
 function NavGroup({
@@ -46,9 +55,13 @@ function NavGroup({
   collapsed,
 }: {
   label: string;
-  items: typeof mainItems;
+  items: NavItem[];
   collapsed: boolean;
 }) {
+  const { profile } = useAuth();
+  const filtered = items.filter((item) => canAccessModule(profile?.role, item.module));
+  if (filtered.length === 0) return null;
+
   return (
     <SidebarGroup>
       {!collapsed && (
@@ -58,7 +71,7 @@ function NavGroup({
       )}
       <SidebarGroupContent>
         <SidebarMenu className="space-y-0.5 px-2">
-          {items.map((item) => (
+          {filtered.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
                 <NavLink

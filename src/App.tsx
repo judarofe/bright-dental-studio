@@ -9,6 +9,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
 import { FloatingAction } from "@/components/FloatingAction";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
+import CompleteProfile from "./pages/CompleteProfile";
 import Dashboard from "./pages/Dashboard";
 import Agenda from "./pages/Agenda";
 import Patients from "./pages/Patients";
@@ -35,6 +37,17 @@ const App = () => (
             <Routes>
               {/* Public */}
               <Route path="/login" element={<Login />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+
+              {/* Protected — profile completion */}
+              <Route
+                path="/complete-profile"
+                element={
+                  <ProtectedRoute>
+                    <CompleteProfile />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Protected — inside AppLayout */}
               <Route

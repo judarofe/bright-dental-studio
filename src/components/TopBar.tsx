@@ -2,10 +2,17 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { LogOut, User, ChevronDown } from "lucide-react";
+import { LogOut, UserCog, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+
+const roleLabels: Record<string, string> = {
+  admin: "Administrador",
+  odontologo: "Odontólogo",
+  asistente: "Asistente",
+};
 
 export function TopBar() {
   const { profile, user, signOut } = useAuth();
@@ -18,12 +25,6 @@ export function TopBar() {
     .join("")
     .slice(0, 2)
     .toUpperCase();
-
-  const roleLabels: Record<string, string> = {
-    admin: "Administrador",
-    odontologo: "Odontólogo",
-    asistente: "Asistente",
-  };
 
   const handleLogout = async () => {
     await signOut();
@@ -47,17 +48,30 @@ export function TopBar() {
             <ChevronDown className="h-3 w-3 text-muted-foreground hidden sm:block" />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-56 p-0" align="end">
-          <div className="px-4 py-3 border-b border-border/60">
+        <PopoverContent className="w-60 p-0" align="end">
+          <div className="px-4 py-3">
             <p className="text-sm font-semibold truncate">{displayName}</p>
             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-            {profile?.role && (
-              <p className="text-[10px] text-primary font-medium mt-1">
-                {roleLabels[profile.role] || profile.role}
-              </p>
-            )}
+            <div className="flex items-center gap-2 mt-1.5">
+              {profile?.role && (
+                <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                  {roleLabels[profile.role] || profile.role}
+                </span>
+              )}
+              {profile?.especialidad && (
+                <span className="text-[10px] text-muted-foreground">{profile.especialidad}</span>
+              )}
+            </div>
           </div>
-          <div className="p-1.5">
+          <Separator />
+          <div className="p-1.5 space-y-0.5">
+            <button
+              onClick={() => navigate("/complete-profile")}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg hover:bg-accent transition-colors text-left"
+            >
+              <UserCog className="h-4 w-4 text-muted-foreground" />
+              Mi perfil
+            </button>
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg hover:bg-destructive/10 text-destructive transition-colors text-left"
