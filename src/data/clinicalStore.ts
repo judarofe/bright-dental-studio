@@ -78,10 +78,19 @@ export function useClinicalStore() {
     [notasCortas]
   );
 
+  const getNotasByPatient = useCallback(
+    (patientId: string) => notasCortas.filter((n) => n.patientId === patientId),
+    [notasCortas]
+  );
+
   const addNota = useCallback((n: Omit<NotaCortaOdontologica, "id">) => {
     const newN: NotaCortaOdontologica = { ...n, id: genClinicalId("nc") };
     setNotasCortas((prev) => [...prev, newN]);
     return newN;
+  }, []);
+
+  const updateNota = useCallback((id: string, data: Partial<NotaCortaOdontologica>) => {
+    setNotasCortas((prev) => prev.map((n) => (n.id === id ? { ...n, ...data } : n)));
   }, []);
 
   // ── Versions ────────────────────────────────
@@ -105,7 +114,9 @@ export function useClinicalStore() {
     getOdontograma,
     getOdontogramaByPatient,
     getNotasByHistoria,
+    getNotasByPatient,
     addNota,
+    updateNota,
     getVersionesByHistoria,
   };
 }

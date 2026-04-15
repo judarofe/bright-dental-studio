@@ -338,7 +338,7 @@ export default function Agenda() {
                                 </button>
                               )}
                               <button
-                                onClick={() => toast.info("Funcionalidad próxima", { description: "Crear nota corta" })}
+                                onClick={() => nav(`/notes?patient=${a.patientId}&appointment=${a.id}`)}
                                 className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg hover:bg-accent transition-colors text-left"
                               >
                                 <StickyNote className="h-3.5 w-3.5 text-muted-foreground" />
