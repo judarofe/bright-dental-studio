@@ -31,6 +31,7 @@ export default function CompleteProfile() {
   const { profile, user, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
+  const isAdmin = profile?.role === "admin";
   const [displayName, setDisplayName] = useState(profile?.display_name || "");
   const [role, setRole] = useState<string>(profile?.role || "odontologo");
   const [especialidad, setEspecialidad] = useState(profile?.especialidad || "");
@@ -47,13 +48,19 @@ export default function CompleteProfile() {
     }
 
     setLoading(true);
+
+    const baseUpdate = {
+      display_name: displayName.trim(),
+      especialidad: (isAdmin || role === "odontologo") ? especialidad || null : null,
+    };
+
+    const updatePayload = isAdmin
+      ? baseUpdate
+      : { ...baseUpdate, role: role as "odontologo" | "asistente" };
+
     const { error: err } = await supabase
       .from("profiles")
-      .update({
-        display_name: displayName.trim(),
-        role: role as any,
-        especialidad: role === "odontologo" ? especialidad || null : null,
-      })
+      .update(updatePayload)
       .eq("user_id", user!.id);
 
     if (err) {
@@ -112,20 +119,28 @@ export default function CompleteProfile() {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">Rol *</Label>
-            <Select value={role} onValueChange={setRole}>
-              <SelectTrigger className="h-11 rounded-xl text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(ROLES_INFO).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-[11px] text-muted-foreground/70">El rol de administrador solo puede ser asignado internamente.</p>
-          </div>
+          {isAdmin ? (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Rol</Label>
+              <Input value="Administrador" disabled className="h-11 rounded-xl text-sm bg-muted" />
+              <p className="text-[11px] text-muted-foreground/70">El rol de administrador no puede cambiarse desde aquí.</p>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Rol *</Label>
+              <Select value={role} onValueChange={setRole}>
+                <SelectTrigger className="h-11 rounded-xl text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(ROLES_INFO).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground/70">El rol de administrador solo puede ser asignado internamente.</p>
+            </div>
+          )}
 
           {role === "odontologo" && (
             <div className="space-y-1.5">
