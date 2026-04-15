@@ -114,7 +114,9 @@ export function useClinicalStore() {
     getOdontograma,
     getOdontogramaByPatient,
     getNotasByHistoria,
+    getNotasByPatient,
     addNota,
+    updateNota,
     getVersionesByHistoria,
   };
 }
