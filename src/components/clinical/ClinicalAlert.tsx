@@ -1,7 +1,7 @@
-import { AlertTriangle, Info, ShieldAlert, LucideIcon } from "lucide-react";
+import { AlertTriangle, Info, ShieldAlert, XCircle, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type AlertType = "risk" | "admin" | "info";
+type AlertType = "risk" | "admin" | "info" | "warning" | "error";
 
 interface Props {
   type: AlertType;
@@ -32,6 +32,20 @@ const config: Record<AlertType, { icon: LucideIcon; bg: string; border: string; 
     border: "border-alert-info/20",
     text: "text-alert-info",
     iconColor: "text-alert-info",
+  },
+  warning: {
+    icon: AlertTriangle,
+    bg: "bg-warning/10",
+    border: "border-warning/20",
+    text: "text-warning",
+    iconColor: "text-warning",
+  },
+  error: {
+    icon: XCircle,
+    bg: "bg-destructive/8",
+    border: "border-destructive/20",
+    text: "text-destructive",
+    iconColor: "text-destructive",
   },
 };
 
