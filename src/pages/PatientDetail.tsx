@@ -333,22 +333,47 @@ export default function PatientDetail() {
           </Card>
         </TabsContent>
 
-        {/* Clinical Record - Placeholder */}
-        <TabsContent value="clinical">
+        {/* Clinical Record - Future-ready placeholder */}
+        <TabsContent value="clinical" className="space-y-4">
           <Card className="border-0 shadow-sm">
-            <CardContent className="py-16 text-center">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 mb-4">
-                <ClipboardList className="h-8 w-8 text-primary" />
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <ClipboardList className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold">Historial Clínico</h3>
+                    <p className="text-xs text-muted-foreground">Registro dental completo del paciente</p>
+                  </div>
+                </div>
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                  Próximamente
+                </span>
               </div>
-              <h3 className="text-base font-semibold mb-1">Historial Clínico</h3>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-2">
-                Próximamente podrás registrar tratamientos, diagnósticos, odontograma y archivos clínicos de cada paciente.
-              </p>
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-full">
-                En desarrollo
-              </span>
             </CardContent>
           </Card>
+
+          {/* Future module cards */}
+          {[
+            { icon: FileText, title: "Notas de consulta", desc: "Registra observaciones de cada visita con opción de entrada por voz." },
+            { icon: ClipboardList, title: "Diagnósticos", desc: "Historial de diagnósticos dentales y condiciones del paciente." },
+            { title: "Procedimientos", desc: "Tratamientos realizados, odontograma y planes de trabajo.", icon: CalendarDays },
+            { title: "Prescripciones", desc: "Medicamentos y recetas emitidas para el paciente.", icon: CreditCard },
+          ].map((mod) => (
+            <Card key={mod.title} className="border-0 shadow-sm opacity-60">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                  <mod.icon className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{mod.title}</p>
+                  <p className="text-xs text-muted-foreground">{mod.desc}</p>
+                </div>
+                <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full shrink-0">Pendiente</span>
+              </CardContent>
+            </Card>
+          ))}
         </TabsContent>
       </Tabs>
 
