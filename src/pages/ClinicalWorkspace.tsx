@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/data/StoreContext";
 import { ClinicalStatusBadge, ClinicalAlert, SectionHeader, ValidationChecklist } from "@/components/clinical";
@@ -8,6 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -28,12 +30,20 @@ import {
   User,
   Mic,
   Sparkles,
+  ChevronDown,
+  ListChecks,
+  Heart,
+  Brain,
+  Cigarette,
+  Clipboard,
+  FileQuestion,
+  Users,
 } from "lucide-react";
 
 type SectionId = "motivo" | "antecedentes" | "exploracion" | "diagnosticos" | "odontograma" | "plan" | "prescripciones" | "notas";
 
 const SECTIONS: { id: SectionId; label: string; icon: typeof ClipboardList }[] = [
-  { id: "motivo", label: "Motivo de consulta", icon: ClipboardList },
+  { id: "motivo", label: "Motivo y anamnesis", icon: ClipboardList },
   { id: "antecedentes", label: "Antecedentes", icon: FileText },
   { id: "exploracion", label: "Exploración", icon: Stethoscope },
   { id: "diagnosticos", label: "Diagnósticos", icon: AlertTriangle },
