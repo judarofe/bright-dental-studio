@@ -52,6 +52,7 @@ const STATUS_STYLES: Record<AppointmentStatus, { border: string; bg: string; dot
 
 export default function Agenda() {
   const store = useAppStore();
+  const nav = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
