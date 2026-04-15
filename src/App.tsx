@@ -39,6 +39,7 @@ const App = () => (
               <Route path="/history" element={<History />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/patients/:patientId/historia/:historiaId" element={<ClinicalWorkspace />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>
