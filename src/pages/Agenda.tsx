@@ -225,6 +225,8 @@ export default function Agenda() {
             const patient = store.getPatient(a.patientId);
             const style = STATUS_STYLES[a.status];
             const isDone = a.status === "completed" || a.status === "noshow";
+            const historia = store.clinical.getHistoriaByPatient(a.patientId);
+            const hasAlert = patient?.notes?.toLowerCase().includes("sensi") || patient?.notes?.toLowerCase().includes("alergi");
 
             return (
               <Card
@@ -247,7 +249,7 @@ export default function Agenda() {
                     {/* Content */}
                     <div className="flex-1 flex items-center gap-4 px-4 py-4 min-w-0">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                           <p className={cn("text-sm font-semibold", isDone && "line-through text-muted-foreground")}>
                             {patient?.name || "Paciente"}
                           </p>
@@ -260,6 +262,15 @@ export default function Agenda() {
                             <span className={cn("h-1.5 w-1.5 rounded-full", style.dot)} />
                             {style.label}
                           </span>
+                          {historia && (
+                            <ClinicalStatusBadge status={estadoMap[historia.estado]} variant="pill" />
+                          )}
+                          {!historia && (
+                            <span className="text-[10px] text-muted-foreground/50 italic">Sin HC</span>
+                          )}
+                          {hasAlert && (
+                            <AlertTriangle className="h-3 w-3 text-warning" />
+                          )}
                         </div>
                         {a.notes && (
                           <p className="text-xs text-muted-foreground truncate">{a.notes}</p>
@@ -279,6 +290,71 @@ export default function Agenda() {
                         className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={(e) => e.stopPropagation()}
                       >
+                        {/* Clinical actions */}
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              className="h-8 w-8 rounded-lg bg-accent hover:bg-accent/80 flex items-center justify-center transition-colors"
+                              title="Contexto clínico"
+                            >
+                              <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-0" align="end" onClick={(e) => e.stopPropagation()}>
+                            {/* Patient quick context */}
+                            <div className="px-4 py-3 border-b border-border/60">
+                              <p className="text-sm font-semibold">{patient?.name}</p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                {patient?.phone && (
+                                  <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{patient.phone}</span>
+                                )}
+                              </div>
+                              {patient?.notes && (
+                                <p className="text-[11px] text-muted-foreground/70 mt-1 line-clamp-2">{patient.notes}</p>
+                              )}
+                              {hasAlert && (
+                                <div className="flex items-center gap-1.5 mt-2 text-[11px] text-warning font-medium">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  Alerta clínica registrada
+                                </div>
+                              )}
+                            </div>
+                            <div className="p-2 space-y-0.5">
+                              {historia ? (
+                                <button
+                                  onClick={() => nav(`/patients/${a.patientId}/historia/${historia.id}`)}
+                                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg hover:bg-accent transition-colors text-left"
+                                >
+                                  <FolderOpen className="h-3.5 w-3.5 text-primary" />
+                                  Abrir historia clínica
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => toast.info("Funcionalidad próxima", { description: "Crear nueva historia" })}
+                                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg hover:bg-accent transition-colors text-left"
+                                >
+                                  <FilePlus className="h-3.5 w-3.5 text-primary" />
+                                  Iniciar historia clínica
+                                </button>
+                              )}
+                              <button
+                                onClick={() => toast.info("Funcionalidad próxima", { description: "Crear nota corta" })}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg hover:bg-accent transition-colors text-left"
+                              >
+                                <StickyNote className="h-3.5 w-3.5 text-muted-foreground" />
+                                Nueva nota corta
+                              </button>
+                              <button
+                                onClick={() => nav(`/patients/${a.patientId}`)}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg hover:bg-accent transition-colors text-left"
+                              >
+                                <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                                Ver perfil completo
+                              </button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+
                         {!isDone && (
                           <>
                             <button
