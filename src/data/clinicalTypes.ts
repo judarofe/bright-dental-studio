@@ -47,15 +47,20 @@ export interface DiagnosticoOdontologico {
 
 // ── Quick notes ─────────────────────────────
 
+export type NotaEstado = "activa" | "anulada";
+
 export interface NotaCortaOdontologica {
   id: string;
   patientId: string;
   historiaId: string;
+  appointmentId?: string;
+  diagnosticoIds?: string[];
   fecha: string;
   contenido: string;
   tipo: "texto" | "voz";
   duracionSegundos?: number;
   creadoPor: string;
+  estado: NotaEstado;
 }
 
 // ── Version history ─────────────────────────
