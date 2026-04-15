@@ -21,6 +21,8 @@ import {
   Plus,
   User,
   Save,
+  Mic,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -350,6 +352,39 @@ export default function PatientDetail() {
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full">
                   Próximamente
                 </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Voice input — premium placeholder */}
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-primary/5 to-accent/30 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <CardContent className="p-5 relative">
+              <div className="flex items-start gap-4">
+                <button
+                  disabled
+                  className="h-12 w-12 rounded-2xl bg-primary/10 border-2 border-dashed border-primary/25 flex items-center justify-center shrink-0 cursor-not-allowed group"
+                  title="Disponible próximamente"
+                >
+                  <Mic className="h-5 w-5 text-primary" />
+                </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="text-sm font-semibold">Notas por voz</p>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                      <Sparkles className="h-3 w-3" /> AI
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Dicta notas clínicas durante la consulta y se transcribirán automáticamente usando inteligencia artificial.
+                  </p>
+                </div>
+              </div>
+              {/* Mock waveform */}
+              <div className="flex items-center gap-1 mt-3 ml-16 opacity-40">
+                {[3, 5, 8, 4, 7, 10, 6, 3, 8, 5, 9, 4, 7, 3, 6, 8, 5, 4, 7, 9, 5, 3, 6, 4].map((h, i) => (
+                  <div key={i} className="w-1 rounded-full bg-primary" style={{ height: `${h * 2}px` }} />
+                ))}
               </div>
             </CardContent>
           </Card>
