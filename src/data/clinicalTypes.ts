@@ -91,9 +91,13 @@ export interface HistoriaOdontologicaClasificacion {
 }
 
 export interface HistoriaOdontologicaDetalle {
+  motivoConsulta: string;
+  anamnesis: string;
   antecedentesMedicos: string;
   antecedentesOdontologicos: string;
-  motivoConsulta: string;
+  antecedentesFamiliares: string;
+  habitos: string;
+  revisionSistemas: string;
   exploracionClinica: string;
   planTratamiento: string;
 }
