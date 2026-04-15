@@ -499,11 +499,11 @@ function ClinicalHubTab({ patientId }: { patientId: string }) {
                 <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-9 text-xs justify-start" onClick={() => toast.info("Módulo de notas en desarrollo")}>
                   <StickyNote className="h-3.5 w-3.5 text-primary" /> Nueva nota corta
                 </Button>
-                <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-9 text-xs justify-start" onClick={() => toast.info("Módulo de versiones en desarrollo")}>
-                  <History className="h-3.5 w-3.5 text-primary" /> Historial de cambios
+                <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-9 text-xs justify-start" onClick={() => navigate("/history")}>
+                  <History className="h-3.5 w-3.5 text-primary" /> Histórico y versiones
                 </Button>
-                <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-9 text-xs justify-start" onClick={() => toast.info("Odontograma en desarrollo")}>
-                  <Activity className="h-3.5 w-3.5 text-primary" /> Odontogramas
+                <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-9 text-xs justify-start" onClick={() => navigate(`/patients/${patientId}/historia/${historia.id}`)}>
+                  <Activity className="h-3.5 w-3.5 text-primary" /> Odontograma
                 </Button>
               </div>
             </CardContent>
