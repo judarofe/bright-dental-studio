@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/data/StoreContext";
 import { ClinicalStatusBadge, ClinicalAlert, SectionHeader, ValidationChecklist } from "@/components/clinical";
 import { OdontogramEditor } from "@/components/clinical/OdontogramEditor";
+import { DiagnosticosSection } from "@/components/clinical/DiagnosticosSection";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -379,44 +380,7 @@ export default function ClinicalWorkspace() {
           )}
 
           {activeSection === "diagnosticos" && (
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <SectionHeader title="Diagnósticos" icon={AlertTriangle} size="sm" />
-                  <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-8 text-xs" onClick={() => toast.info("Agregar diagnóstico — en desarrollo")}>
-                    <Stethoscope className="h-3.5 w-3.5" /> Agregar
-                  </Button>
-                </div>
-                {diagnosticos.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-4 text-center">No hay diagnósticos registrados aún.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {diagnosticos.map((dx) => (
-                      <div key={dx.id} className="flex items-start gap-3 p-3 rounded-xl bg-muted/40">
-                        <div className={cn(
-                          "h-2 w-2 rounded-full mt-1.5 shrink-0",
-                          dx.severidad === "severo" ? "bg-destructive" :
-                          dx.severidad === "moderado" ? "bg-warning" : "bg-success"
-                        )} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium">{dx.descripcion}</p>
-                            <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{dx.codigo}</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">{dx.notas}</p>
-                          {dx.piezas.length > 0 && (
-                            <p className="text-[10px] text-muted-foreground mt-1">Piezas: {dx.piezas.join(", ")}</p>
-                          )}
-                        </div>
-                        <span className="text-[10px] text-muted-foreground shrink-0">
-                          {new Date(dx.fecha).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <DiagnosticosSection diagnosticos={diagnosticos} historiaId={historia.id} />
           )}
 
           {activeSection === "odontograma" && (
