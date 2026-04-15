@@ -48,20 +48,19 @@ export default function CompleteProfile() {
     }
 
     setLoading(true);
-    const updateData: Record<string, any> = {
+
+    const baseUpdate = {
       display_name: displayName.trim(),
+      especialidad: (isAdmin || role === "odontologo") ? especialidad || null : null,
     };
-    // Admins keep their role — never overwrite
-    if (!isAdmin) {
-      updateData.role = role;
-      updateData.especialidad = role === "odontologo" ? especialidad || null : null;
-    } else {
-      updateData.especialidad = especialidad || null;
-    }
+
+    const updatePayload = isAdmin
+      ? baseUpdate
+      : { ...baseUpdate, role: role as "odontologo" | "asistente" };
 
     const { error: err } = await supabase
       .from("profiles")
-      .update(updateData)
+      .update(updatePayload)
       .eq("user_id", user!.id);
 
     if (err) {
