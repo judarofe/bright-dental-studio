@@ -90,6 +90,40 @@ export interface HistoriaOdontologicaClasificacion {
   medicamentosActuales: string[];
 }
 
+// ── Signos vitales & examen físico ──────────
+
+export interface SignosVitales {
+  presionArterial: string;        // e.g. "120/80"
+  frecuenciaCardiaca: number;     // bpm
+  frecuenciaRespiratoria: number; // rpm
+  temperatura: number;            // °C
+  peso: number;                   // kg
+  talla: number;                  // cm
+  imc: number;                    // calculated
+  saturacionO2?: number;          // %
+}
+
+export interface IndicadoresOdontologicos {
+  indiceOLeary: number;           // %
+  fluorosis: "normal" | "cuestionable" | "muy_leve" | "leve" | "moderada" | "severa";
+  dientesExaminados: number;
+  superficiesExaminadas: number;
+  superficiesMarcadas: number;
+  copC: number;                   // cariados
+  copO: number;                   // obturados
+  copP: number;                   // perdidos
+  copTotal: number;               // C+O+P
+  copd?: number;                  // deciduous
+  aptoCop: boolean;
+}
+
+export interface ExamenFisico {
+  general: string;
+  especifico: string;
+  signosVitales: SignosVitales;
+  indicadoresOdontologicos: IndicadoresOdontologicos;
+}
+
 export interface HistoriaOdontologicaDetalle {
   motivoConsulta: string;
   anamnesis: string;
@@ -98,6 +132,7 @@ export interface HistoriaOdontologicaDetalle {
   antecedentesFamiliares: string;
   habitos: string;
   revisionSistemas: string;
+  examenFisico: ExamenFisico;
   exploracionClinica: string;
   planTratamiento: string;
 }
