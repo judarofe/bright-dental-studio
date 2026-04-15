@@ -709,9 +709,14 @@ function ClinicalTextField({ title, icon: Icon, value, placeholder, rows = 4, re
           <span className="text-[10px] text-muted-foreground">
             {text.length > 0 ? `${text.length} caracteres` : "Sin contenido"}
           </span>
-          {text !== value && (
+          {text !== value && !saved && (
             <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-normal bg-warning/10 text-warning border-0">
               Sin guardar
+            </Badge>
+          )}
+          {text !== value && saved && (
+            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-normal bg-success/10 text-success border-0">
+              ✓ Guardado
             </Badge>
           )}
         </div>
