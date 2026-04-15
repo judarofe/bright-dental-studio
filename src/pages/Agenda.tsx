@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/data/StoreContext";
 import { AppointmentModal } from "@/components/AppointmentModal";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,10 +16,26 @@ import {
   Calendar as CalendarIcon,
   Clock,
   Pencil,
+  FilePlus,
+  StickyNote,
+  FolderOpen,
+  Phone,
+  AlertTriangle,
+  FileText,
 } from "lucide-react";
 import { Appointment, AppointmentStatus } from "@/data/store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import type { HistoriaEstado } from "@/data/clinicalTypes";
+import type { ClinicalRecordStatus } from "@/components/clinical";
+import { ClinicalStatusBadge } from "@/components/clinical";
+
+const estadoMap: Record<HistoriaEstado, ClinicalRecordStatus> = {
+  borrador: "draft",
+  en_progreso: "in_progress",
+  cerrada: "closed",
+  anulada: "voided",
+};
 
 const HOURS = Array.from({ length: 11 }, (_, i) => i + 8);
 
