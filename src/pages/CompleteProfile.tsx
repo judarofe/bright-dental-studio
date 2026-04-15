@@ -31,6 +31,7 @@ export default function CompleteProfile() {
   const { profile, user, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
+  const isAdmin = profile?.role === "admin";
   const [displayName, setDisplayName] = useState(profile?.display_name || "");
   const [role, setRole] = useState<string>(profile?.role || "odontologo");
   const [especialidad, setEspecialidad] = useState(profile?.especialidad || "");
@@ -47,13 +48,20 @@ export default function CompleteProfile() {
     }
 
     setLoading(true);
+    const updateData: Record<string, any> = {
+      display_name: displayName.trim(),
+    };
+    // Admins keep their role — never overwrite
+    if (!isAdmin) {
+      updateData.role = role;
+      updateData.especialidad = role === "odontologo" ? especialidad || null : null;
+    } else {
+      updateData.especialidad = especialidad || null;
+    }
+
     const { error: err } = await supabase
       .from("profiles")
-      .update({
-        display_name: displayName.trim(),
-        role: role as any,
-        especialidad: role === "odontologo" ? especialidad || null : null,
-      })
+      .update(updateData)
       .eq("user_id", user!.id);
 
     if (err) {
