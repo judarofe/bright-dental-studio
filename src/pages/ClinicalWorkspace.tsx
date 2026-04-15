@@ -362,7 +362,7 @@ export default function ClinicalWorkspace() {
             </div>
           )}
 
-          {activeSection === "examen" && (
+          {activeSection === "examen" && historia.detalle.examenFisico && (
             <ExamenFisicoSection examen={historia.detalle.examenFisico} />
           )}
 
