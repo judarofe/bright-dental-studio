@@ -1,6 +1,8 @@
 import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/data/StoreContext";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { EmptyState } from "@/components/EmptyState";
 import { ClinicalStatusBadge, ClinicalAlert, SectionHeader, ValidationChecklist } from "@/components/clinical";
 import { OdontogramEditor } from "@/components/clinical/OdontogramEditor";
 import { DiagnosticosSection } from "@/components/clinical/DiagnosticosSection";
@@ -80,6 +82,7 @@ export default function ClinicalWorkspace() {
   const versiones = historia ? clinical.getVersionesByHistoria(historia.id) : [];
 
   const [activeSection, setActiveSection] = useState<SectionId>("motivo");
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
   // Map estado → badge status
   const badgeStatus = historia
@@ -121,8 +124,11 @@ export default function ClinicalWorkspace() {
 
   const handleClose = () => {
     clinical.updateHistoria(historia.id, { estado: "cerrada" });
-    toast.success("Historia cerrada correctamente");
+    toast.success("Historia cerrada correctamente", { description: `${patient.name} — Historia bloqueada` });
+    setShowCloseConfirm(false);
   };
+
+  const isLocked = historia.estado === "cerrada" || historia.estado === "anulada";
 
   const handlePrint = () => {
     toast.info("Preparando impresión…");
@@ -162,9 +168,11 @@ export default function ClinicalWorkspace() {
           <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-8 text-xs" onClick={() => toast.info("Historial de versiones disponible abajo")}>
             <History className="h-3.5 w-3.5" /> Historial
           </Button>
-          <Button size="sm" variant="destructive" className="rounded-xl gap-1.5 h-8 text-xs" onClick={handleClose}>
-            <Lock className="h-3.5 w-3.5" /> Cerrar historia
-          </Button>
+          {!isLocked && (
+            <Button size="sm" variant="destructive" className="rounded-xl gap-1.5 h-8 text-xs" onClick={() => setShowCloseConfirm(true)}>
+              <Lock className="h-3.5 w-3.5" /> Cerrar historia
+            </Button>
+          )}
         </div>
       </div>
 
@@ -199,6 +207,15 @@ export default function ClinicalWorkspace() {
           )}
         </CardContent>
       </Card>
+
+      {/* Locked banner */}
+      {isLocked && (
+        <ClinicalAlert
+          type={historia.estado === "anulada" ? "error" : "admin"}
+          title={historia.estado === "anulada" ? "Historia anulada — solo lectura" : "Historia cerrada — solo lectura"}
+          description="No se pueden realizar modificaciones sin autorización administrativa."
+        />
+      )}
 
       {/* Main layout: sidebar nav + content */}
       <div className="flex gap-4 items-start">
@@ -369,8 +386,22 @@ export default function ClinicalWorkspace() {
             </div>
           )}
 
-          {activeSection === "examen" && historia.detalle.examenFisico && (
-            <ExamenFisicoSection examen={historia.detalle.examenFisico} />
+          {activeSection === "examen" && (
+            historia.detalle.examenFisico ? (
+              <ExamenFisicoSection examen={historia.detalle.examenFisico} />
+            ) : (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-0">
+                  <EmptyState
+                    icon={Activity}
+                    title="Sin examen físico registrado"
+                    description="Registre los signos vitales e indicadores odontológicos del paciente."
+                    actionLabel="Registrar examen"
+                    onAction={() => toast.info("Registro de examen — en desarrollo")}
+                  />
+                </CardContent>
+              </Card>
+            )
           )}
 
           {activeSection === "exploracion" && (
@@ -380,6 +411,7 @@ export default function ClinicalWorkspace() {
                 placeholder="Hallazgos de la exploración clínica…"
                 rows={6}
                 className="rounded-xl resize-none text-sm"
+                readOnly={isLocked}
               />
             </SectionCard>
           )}
@@ -396,23 +428,35 @@ export default function ClinicalWorkspace() {
             <SectionCard title="Plan de tratamiento" icon={CheckCircle2}>
               <Textarea
                 defaultValue={historia.detalle.planTratamiento}
-                placeholder="Defina el plan de tratamiento…"
+                placeholder="Defina el plan de tratamiento: fases, procedimientos por pieza, prioridades…"
                 rows={6}
                 className="rounded-xl resize-none text-sm"
+                readOnly={isLocked}
               />
+              {!historia.detalle.planTratamiento && (
+                <p className="text-xs text-destructive flex items-center gap-1.5 mt-1">
+                  <AlertTriangle className="h-3 w-3" /> Se recomienda definir el plan antes de cerrar la historia.
+                </p>
+              )}
             </SectionCard>
           )}
 
           {activeSection === "prescripciones" && (
             <Card className="border-0 shadow-sm">
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-center justify-between">
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between px-5 pt-5">
                   <SectionHeader title="Prescripciones" icon={Pill} size="sm" />
-                  <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-8 text-xs" onClick={() => toast.info("Agregar prescripción — en desarrollo")}>
-                    <Pill className="h-3.5 w-3.5" /> Agregar
-                  </Button>
+                  {!isLocked && (
+                    <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-8 text-xs" onClick={() => toast.info("Agregar prescripción — en desarrollo")}>
+                      <Pill className="h-3.5 w-3.5" /> Agregar
+                    </Button>
+                  )}
                 </div>
-                <p className="text-sm text-muted-foreground py-4 text-center">Las prescripciones se mostrarán aquí cuando se registren.</p>
+                <EmptyState
+                  icon={Pill}
+                  title="Sin prescripciones registradas"
+                  description="Las prescripciones farmacológicas del paciente aparecerán aquí."
+                />
               </CardContent>
             </Card>
           )}
@@ -427,7 +471,11 @@ export default function ClinicalWorkspace() {
                   </Button>
                 </div>
                 {notas.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-4 text-center">Sin notas registradas.</p>
+                  <EmptyState
+                    icon={StickyNote}
+                    title="Sin notas clínicas"
+                    description="Agrega notas para registrar observaciones durante la consulta."
+                  />
                 ) : (
                   <div className="space-y-2">
                     {notas.map((n) => (
