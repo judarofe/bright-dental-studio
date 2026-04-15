@@ -616,6 +616,7 @@ interface ClinicalTextFieldProps {
   rows?: number;
   required?: boolean;
   templates?: string[];
+  readOnly?: boolean;
 }
 
 function ClinicalTextField({ title, icon: Icon, value, placeholder, rows = 4, required, templates }: ClinicalTextFieldProps) {
