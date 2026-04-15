@@ -119,20 +119,28 @@ export default function CompleteProfile() {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">Rol *</Label>
-            <Select value={role} onValueChange={setRole}>
-              <SelectTrigger className="h-11 rounded-xl text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(ROLES_INFO).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-[11px] text-muted-foreground/70">El rol de administrador solo puede ser asignado internamente.</p>
-          </div>
+          {isAdmin ? (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Rol</Label>
+              <Input value="Administrador" disabled className="h-11 rounded-xl text-sm bg-muted" />
+              <p className="text-[11px] text-muted-foreground/70">El rol de administrador no puede cambiarse desde aquí.</p>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Rol *</Label>
+              <Select value={role} onValueChange={setRole}>
+                <SelectTrigger className="h-11 rounded-xl text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(ROLES_INFO).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground/70">El rol de administrador solo puede ser asignado internamente.</p>
+            </div>
+          )}
 
           {role === "odontologo" && (
             <div className="space-y-1.5">
