@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import type { ExamenFisico } from "@/data/clinicalTypes";
 import {
   ArrowLeft,
   Save,
@@ -38,6 +39,10 @@ import {
   Clipboard,
   FileQuestion,
   Users,
+  Thermometer,
+  Weight,
+  Ruler,
+  Droplets,
 } from "lucide-react";
 
 type SectionId = "motivo" | "antecedentes" | "examen" | "exploracion" | "diagnosticos" | "odontograma" | "plan" | "prescripciones" | "notas";
