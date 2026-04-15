@@ -362,6 +362,10 @@ export default function ClinicalWorkspace() {
             </div>
           )}
 
+          {activeSection === "examen" && (
+            <ExamenFisicoSection examen={historia.detalle.examenFisico} />
+          )}
+
           {activeSection === "exploracion" && (
             <SectionCard title="Exploración clínica" icon={Stethoscope}>
               <Textarea
