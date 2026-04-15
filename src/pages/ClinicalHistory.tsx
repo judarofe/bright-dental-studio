@@ -5,7 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ClinicalAlert, ClinicalStatusBadge, SummaryPanel } from "@/components/clinical";
+import { ClinicalStatusBadge, SummaryPanel } from "@/components/clinical";
+import type { ClinicalRecordStatus } from "@/components/clinical";
+import type { HistoriaEstado } from "@/data/clinicalTypes";
 import {
   Search,
   Phone,
@@ -23,6 +25,13 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 type FilterTab = "all" | "today" | "recent";
+
+const estadoToStatus: Record<HistoriaEstado, ClinicalRecordStatus> = {
+  borrador: "draft",
+  en_progreso: "in_progress",
+  cerrada: "closed",
+  anulada: "voided",
+};
 
 export default function ClinicalHistory() {
   const store = useAppStore();
@@ -179,7 +188,7 @@ export default function ClinicalHistory() {
                           {p.name}
                         </button>
                         {historia && (
-                          <ClinicalStatusBadge status={historia.estado} variant="pill" />
+                          <ClinicalStatusBadge status={estadoToStatus[historia.estado]} variant="pill" />
                         )}
                         {todayAppt && (
                           <span className="inline-flex items-center gap-1 text-[10px] font-medium text-primary bg-primary/8 px-2 py-0.5 rounded-full">
