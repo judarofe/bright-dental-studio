@@ -11,8 +11,12 @@ import Agenda from "./pages/Agenda";
 import Patients from "./pages/Patients";
 import PatientDetail from "./pages/PatientDetail";
 import Payments from "./pages/Payments";
+import ClinicalHistory from "./pages/ClinicalHistory";
+import QuickNotes from "./pages/QuickNotes";
+import History from "./pages/History";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -29,6 +33,11 @@ const App = () => (
               <Route path="/patients" element={<Patients />} />
               <Route path="/patients/:id" element={<PatientDetail />} />
               <Route path="/payments" element={<Payments />} />
+              <Route path="/clinical" element={<ClinicalHistory />} />
+              <Route path="/notes" element={<QuickNotes />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>
