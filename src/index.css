@@ -55,6 +55,18 @@
     --status-confirmed: 210 70% 48%;
     --status-completed: 155 55% 40%;
     --status-noshow: 0 65% 52%;
+
+    --clinical-draft: 220 12% 55%;
+    --clinical-in-progress: 210 70% 48%;
+    --clinical-closed: 155 55% 40%;
+    --clinical-voided: 0 65% 52%;
+
+    --alert-risk: 0 65% 52%;
+    --alert-risk-foreground: 0 0% 100%;
+    --alert-admin: 40 90% 52%;
+    --alert-admin-foreground: 30 80% 15%;
+    --alert-info: 210 70% 48%;
+    --alert-info-foreground: 0 0% 100%;
   }
 
   .dark {
@@ -89,6 +101,18 @@
     --status-confirmed: 210 70% 52%;
     --status-completed: 155 55% 46%;
     --status-noshow: 0 55% 50%;
+
+    --clinical-draft: 220 12% 50%;
+    --clinical-in-progress: 210 70% 52%;
+    --clinical-closed: 155 55% 46%;
+    --clinical-voided: 0 55% 50%;
+
+    --alert-risk: 0 55% 50%;
+    --alert-risk-foreground: 0 0% 100%;
+    --alert-admin: 40 90% 55%;
+    --alert-admin-foreground: 30 80% 10%;
+    --alert-info: 210 70% 52%;
+    --alert-info-foreground: 0 0% 100%;
   }
 }
 

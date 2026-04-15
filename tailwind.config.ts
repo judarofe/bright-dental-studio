@@ -74,6 +74,20 @@ export default {
           completed: "hsl(var(--status-completed))",
           noshow: "hsl(var(--status-noshow))",
         },
+        clinical: {
+          draft: "hsl(var(--clinical-draft))",
+          "in-progress": "hsl(var(--clinical-in-progress))",
+          closed: "hsl(var(--clinical-closed))",
+          voided: "hsl(var(--clinical-voided))",
+        },
+        alert: {
+          risk: "hsl(var(--alert-risk))",
+          "risk-foreground": "hsl(var(--alert-risk-foreground))",
+          admin: "hsl(var(--alert-admin))",
+          "admin-foreground": "hsl(var(--alert-admin-foreground))",
+          info: "hsl(var(--alert-info))",
+          "info-foreground": "hsl(var(--alert-info-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
