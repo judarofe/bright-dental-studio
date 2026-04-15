@@ -1,5 +1,6 @@
 /* ──────────────────────────────────────────────
    Odontogram Editor — Interactive dental chart
+   v1.0
    ────────────────────────────────────────────── */
 
 import { useState, useMemo } from "react";
