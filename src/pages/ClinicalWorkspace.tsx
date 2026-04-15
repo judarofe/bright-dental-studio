@@ -4,6 +4,7 @@ import { useAppStore } from "@/data/StoreContext";
 import { ClinicalStatusBadge, ClinicalAlert, SectionHeader, ValidationChecklist } from "@/components/clinical";
 import { OdontogramEditor } from "@/components/clinical/OdontogramEditor";
 import { DiagnosticosSection } from "@/components/clinical/DiagnosticosSection";
+import { ConductaCierreSection } from "@/components/clinical/ConductaCierreSection";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -474,6 +475,15 @@ export default function ClinicalWorkspace() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {activeSection === "cierre" && (
+            <ConductaCierreSection
+              historia={historia}
+              diagnosticos={diagnosticos}
+              checklistItems={checklistItems}
+              onUpdateHistoria={(id, data) => clinical.updateHistoria(id, data)}
+            />
           )}
 
           {/* Validation checklist — always visible */}
