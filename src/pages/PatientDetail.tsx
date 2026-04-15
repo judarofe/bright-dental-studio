@@ -4,12 +4,14 @@ import { useAppStore } from "@/data/StoreContext";
 import { AppointmentModal } from "@/components/AppointmentModal";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
+import { ClinicalStatusBadge, ClinicalAlert, SectionHeader } from "@/components/clinical";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Appointment } from "@/data/store";
 import {
   ArrowLeft,
@@ -23,6 +25,13 @@ import {
   Save,
   Mic,
   Sparkles,
+  ShieldAlert,
+  Stethoscope,
+  History,
+  StickyNote,
+  Activity,
+  AlertTriangle,
+  Pill,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
