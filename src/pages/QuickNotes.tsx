@@ -543,7 +543,7 @@ export default function QuickNotes() {
       {/* Void confirmation */}
       <ConfirmDialog
         open={!!voidingId}
-        onOpenChange={(open) => !open && setVoidingId(null)}
+        onCancel={() => setVoidingId(null)}
         title="Anular nota clínica"
         description="Esta acción marcará la nota como anulada. No se eliminará del registro pero quedará inactiva para auditoría. ¿Deseas continuar?"
         confirmLabel="Anular nota"
