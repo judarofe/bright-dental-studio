@@ -619,15 +619,24 @@ interface ClinicalTextFieldProps {
   readOnly?: boolean;
 }
 
-function ClinicalTextField({ title, icon: Icon, value, placeholder, rows = 4, required, templates }: ClinicalTextFieldProps) {
+function ClinicalTextField({ title, icon: Icon, value, placeholder, rows = 4, required, templates, readOnly }: ClinicalTextFieldProps) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [text, setText] = useState(value);
+  const [saved, setSaved] = useState(true);
   const filled = text.trim().length > 0;
 
   const applyTemplate = (tpl: string) => {
     setText(tpl);
     setShowTemplates(false);
+    setSaved(false);
     toast.success("Plantilla aplicada");
+  };
+
+  const handleBlur = () => {
+    if (text !== value && !readOnly) {
+      setSaved(true);
+      toast.success("Guardado automáticamente", { description: title });
+    }
   };
 
   return (
@@ -652,7 +661,7 @@ function ClinicalTextField({ title, icon: Icon, value, placeholder, rows = 4, re
               )}
             </div>
           </div>
-          {templates && templates.length > 0 && (
+          {templates && templates.length > 0 && !readOnly && (
             <Button
               variant="ghost"
               size="sm"
@@ -684,12 +693,15 @@ function ClinicalTextField({ title, icon: Icon, value, placeholder, rows = 4, re
 
         <Textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => { setText(e.target.value); setSaved(false); }}
+          onBlur={handleBlur}
           placeholder={placeholder}
           rows={rows}
+          readOnly={readOnly}
           className={cn(
             "rounded-xl resize-none text-sm transition-colors",
-            !filled && required && "border-destructive/30 focus-visible:ring-destructive/30"
+            !filled && required && "border-destructive/30 focus-visible:ring-destructive/30",
+            readOnly && "opacity-70 cursor-not-allowed"
           )}
         />
 
