@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
+          activo: boolean
           avatar_url: string | null
           created_at: string
           display_name: string | null
@@ -26,6 +27,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          activo?: boolean
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
@@ -36,6 +38,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          activo?: boolean
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
