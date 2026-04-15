@@ -40,11 +40,12 @@ import {
   Users,
 } from "lucide-react";
 
-type SectionId = "motivo" | "antecedentes" | "exploracion" | "diagnosticos" | "odontograma" | "plan" | "prescripciones" | "notas";
+type SectionId = "motivo" | "antecedentes" | "examen" | "exploracion" | "diagnosticos" | "odontograma" | "plan" | "prescripciones" | "notas";
 
 const SECTIONS: { id: SectionId; label: string; icon: typeof ClipboardList }[] = [
   { id: "motivo", label: "Motivo y anamnesis", icon: ClipboardList },
   { id: "antecedentes", label: "Antecedentes", icon: FileText },
+  { id: "examen", label: "Examen físico", icon: Activity },
   { id: "exploracion", label: "Exploración", icon: Stethoscope },
   { id: "diagnosticos", label: "Diagnósticos", icon: AlertTriangle },
   { id: "odontograma", label: "Odontograma", icon: Activity },
