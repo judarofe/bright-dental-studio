@@ -367,6 +367,7 @@ export default function PatientDetail() {
 
 function ClinicalHubTab({ patientId }: { patientId: string }) {
   const { clinical } = useAppStore();
+  const navigate = useNavigate();
 
   const historia = clinical.getHistoriaByPatient(patientId);
   const diagnosticos = historia ? clinical.getDiagnosticosByHistoria(historia.id) : [];
