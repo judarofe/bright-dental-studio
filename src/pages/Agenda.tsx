@@ -440,6 +440,13 @@ export default function Agenda() {
         defaultDate={defaultDate}
         defaultTime={defaultTime}
       />
+
+      <NewCareDialog
+        open={newCareOpen}
+        onClose={() => setNewCareOpen(false)}
+        patientId={newCarePatientId}
+        patientName={newCarePatientName}
+      />
     </div>
   );
 }
