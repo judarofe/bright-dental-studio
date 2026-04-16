@@ -53,7 +53,7 @@ interface Props {
 
 export function ClinicalHubTab({ patientId }: Props) {
   const { clinical } = useAppStore();
-  const { specialtyCodes } = useAuth();
+  const { accessibleSpecialties } = useAuth();
   const navigate = useNavigate();
 
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
@@ -70,9 +70,9 @@ export function ClinicalHubTab({ patientId }: Props) {
     ? ({ borrador: "draft", en_progreso: "in_progress", cerrada: "closed", anulada: "voided" } as const)[historia.estado]
     : undefined;
 
-  // Filter specialties to show: active ones + user's assigned ones
+  // Show specialties that are active OR that the user has access to
   const visibleSpecialties = ALL_SPECIALTIES.filter(
-    (s) => s.active || specialtyCodes.includes(s.code)
+    (s) => s.active || accessibleSpecialties.includes(s.code)
   );
 
   // Currently only odontologia has data — this simulates per-specialty history lookup
