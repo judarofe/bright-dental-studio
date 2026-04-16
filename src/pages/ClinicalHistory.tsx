@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import { useAppStore } from "@/data/StoreContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import {
   AlertTriangle,
   Clock,
   FileText,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
