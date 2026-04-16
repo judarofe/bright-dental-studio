@@ -28,9 +28,9 @@ import {
 /* ── Static config data ──────────────────────── */
 
 const ROLES_CONFIG = [
-  { code: "admin", label: "Administrador", description: "Acceso total al sistema, gestión de usuarios y configuración", icon: Shield, color: "bg-warning/10 text-warning" },
-  { code: "odontologo", label: "Odontólogo", description: "Acceso clínico completo, historias, diagnósticos y tratamientos", icon: Stethoscope, color: "bg-primary/10 text-primary" },
-  { code: "asistente", label: "Asistente", description: "Agenda, pacientes y pagos. Sin acceso clínico", icon: Users, color: "bg-muted text-muted-foreground" },
+  { code: "admin", label: "Administrador", category: "Administrativo", description: "Acceso total al sistema, gestión de usuarios y configuración", icon: Shield, color: "bg-warning/10 text-warning", catColor: "bg-warning/5 text-warning" },
+  { code: "odontologo", label: "Odontólogo", category: "Clínico", description: "Acceso clínico completo, historias, diagnósticos y tratamientos", icon: Stethoscope, color: "bg-primary/10 text-primary", catColor: "bg-primary/5 text-primary" },
+  { code: "asistente", label: "Asistente", category: "Operativo", description: "Agenda, pacientes y pagos. Sin acceso clínico", icon: Users, color: "bg-muted text-muted-foreground", catColor: "bg-muted text-muted-foreground" },
 ];
 
 const MODULES_CONFIG = [
@@ -154,6 +154,9 @@ export default function Settings() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-semibold">{role.label}</p>
+                      <Badge variant="outline" className={cn("text-[9px] h-4 px-1.5 border-0 font-medium", role.catColor)}>
+                        {role.category}
+                      </Badge>
                       {isCurrent && (
                         <Badge className="text-[9px] h-4 px-1.5 bg-primary/10 text-primary border-0">Tu rol</Badge>
                       )}
@@ -163,6 +166,16 @@ export default function Settings() {
                 </div>
               );
             })}
+          </div>
+
+          {/* Category explanation */}
+          <div className="rounded-xl border border-border/30 bg-muted/10 p-3">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <strong className="text-foreground/80">Modelo de acceso:</strong> El acceso se determina por la combinación de{" "}
+              <span className="text-primary font-medium">categoría del rol</span> +{" "}
+              <span className="text-primary font-medium">especialidades habilitadas</span>.
+              Los roles clínicos requieren al menos una especialidad activa para acceder a módulos de atención.
+            </p>
           </div>
 
           {/* Permissions matrix */}
@@ -213,6 +226,7 @@ export default function Settings() {
             {MODULES_CONFIG.map((mod) => {
               const Icon = mod.icon;
               const userHasAccess = profile?.role && mod.roles.includes(profile.role);
+              const isSpecialtyGated = ["clinical", "notes", "history"].includes(mod.code);
               return (
                 <div
                   key={mod.code}
@@ -228,7 +242,12 @@ export default function Settings() {
                     <p className="text-xs font-semibold">{mod.label}</p>
                     <p className="text-[10px] text-muted-foreground truncate">{mod.description}</p>
                   </div>
-                  <div className="flex gap-1 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
+                    {isSpecialtyGated && (
+                      <span className="text-[7px] bg-primary/10 text-primary px-1 py-0.5 rounded font-medium">
+                        +ESP
+                      </span>
+                    )}
                     {mod.roles.map((r) => (
                       <span key={r} className="text-[8px] bg-muted/60 text-muted-foreground px-1 py-0.5 rounded">
                         {r.slice(0, 3).toUpperCase()}
@@ -239,6 +258,10 @@ export default function Settings() {
               );
             })}
           </div>
+          <p className="text-[10px] text-muted-foreground/60">
+            <span className="bg-primary/10 text-primary px-1 py-0.5 rounded text-[7px] font-medium mr-1">+ESP</span>
+            Requiere especialidad activa para roles clínicos
+          </p>
         </CardContent>
       </Card>
 

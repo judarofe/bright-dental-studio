@@ -7,11 +7,15 @@ import {
   canAccessRoute,
   canAccessSpecialty,
   canPerformAction,
+  canEffectivelyAccessModule,
   getAccessibleSpecialties,
+  getRoleCategory,
+  isRoleCategory,
   type AppRole,
   type AppModule,
   type AppAction,
   type AccessContext,
+  type RoleCategory,
 } from "@/lib/permissions";
 import type { Specialty } from "@/lib/specialties";
 
@@ -33,6 +37,8 @@ interface AuthContextType {
   profileComplete: boolean;
   specialties: Specialty[];
   specialtyCodes: string[];
+  /** Semantic role category (administrativo, clinico, operativo) */
+  roleCategory: RoleCategory | null;
   /** Unified access context for permission checks */
   access: AccessContext;
   /** Convenience: check module access (role-based) */
@@ -41,6 +47,8 @@ interface AuthContextType {
   canSpecialty: (code: string) => boolean;
   /** Convenience: check action permission */
   canAction: (action: AppAction) => boolean;
+  /** Check if user's role belongs to a category */
+  isCategory: (cat: RoleCategory) => boolean;
   /** Convenience: check route access */
   canRoute: (path: string) => boolean;
   /** List of specialty codes the user can clinically access */
@@ -179,19 +187,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [profile?.role, specialtyCodes]
   );
 
+  const roleCategory = useMemo(() => getRoleCategory(profile?.role), [profile?.role]);
   const canModule = useCallback((m: AppModule) => canAccessModule(access.role, m), [access.role]);
   const canSpecialtyFn = useCallback((code: string) => canAccessSpecialty(access, code), [access]);
   const canAction = useCallback((a: AppAction) => canPerformAction(access.role, a), [access.role]);
+  const isCategory = useCallback((cat: RoleCategory) => isRoleCategory(access.role, cat), [access.role]);
   const canRoute = useCallback((path: string) => canAccessRoute(access.role, path, specialtyCodes), [access.role, specialtyCodes]);
   const accessibleSpecs = useMemo(() => getAccessibleSpecialties(access), [access]);
 
   return (
     <AuthContext.Provider value={{
       user, session, profile, loading, profileComplete, specialties, specialtyCodes,
-      access,
+      roleCategory, access,
       canModule,
       canSpecialty: canSpecialtyFn,
-      canAction,
+      canAction, isCategory,
       canRoute,
       accessibleSpecialties: accessibleSpecs,
       signIn, signUp, signOut, refreshProfile, forgotPassword,
