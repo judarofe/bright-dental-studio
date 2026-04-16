@@ -18,6 +18,7 @@ const ALL_SPEC_CODES: SpecialtyCode[] = ["odontologia", "medicina", "psicologia"
 
 export default function Dashboard() {
   const store = useAppStore();
+  const { specialties } = useAuth();
   const today = new Date().toISOString().split("T")[0];
   const todayAppts = store.getAppointmentsForDate(today);
   const todayRevenue = todayAppts.filter((a) => a.paid).reduce((s, a) => s + a.amount, 0);
