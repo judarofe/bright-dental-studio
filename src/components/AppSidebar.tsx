@@ -12,6 +12,7 @@ import {
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
 import { canAccessModule, type AppModule } from "@/lib/permissions";
+import { getSpecialtyModules } from "@/lib/specialties";
 import {
   Sidebar,
   SidebarContent,
@@ -29,6 +30,7 @@ interface NavItem {
   url: string;
   icon: React.ComponentType<{ className?: string }>;
   module: AppModule;
+  requiresSpecialty?: string; // specialty code required to show this item
 }
 
 const mainItems: NavItem[] = [
@@ -39,7 +41,7 @@ const mainItems: NavItem[] = [
 ];
 
 const clinicalItems: NavItem[] = [
-  { title: "Historia Odontológica", url: "/clinical", icon: HeartPulse, module: "clinical" },
+  { title: "Historia Odontológica", url: "/clinical", icon: HeartPulse, module: "clinical", requiresSpecialty: "odontologia" },
   { title: "Notas Cortas", url: "/notes", icon: StickyNote, module: "notes" },
 ];
 
@@ -58,8 +60,19 @@ function NavGroup({
   items: NavItem[];
   collapsed: boolean;
 }) {
-  const { profile } = useAuth();
-  const filtered = items.filter((item) => canAccessModule(profile?.role, item.module));
+  const { profile, specialtyCodes } = useAuth();
+  const specialtyModules = getSpecialtyModules(specialtyCodes);
+  
+  const filtered = items.filter((item) => {
+    // Check role-based access
+    if (!canAccessModule(profile?.role, item.module)) return false;
+    // Check specialty requirement — admins bypass specialty check
+    if (item.requiresSpecialty && profile?.role !== "admin") {
+      if (!specialtyCodes.includes(item.requiresSpecialty)) return false;
+    }
+    return true;
+  });
+  
   if (filtered.length === 0) return null;
 
   return (
