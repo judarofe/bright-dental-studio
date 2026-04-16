@@ -33,6 +33,18 @@ interface AuthContextType {
   profileComplete: boolean;
   specialties: Specialty[];
   specialtyCodes: string[];
+  /** Unified access context for permission checks */
+  access: AccessContext;
+  /** Convenience: check module access (role-based) */
+  canModule: (module: AppModule) => boolean;
+  /** Convenience: check specialty access (role + specialty) */
+  canSpecialty: (code: string) => boolean;
+  /** Convenience: check action permission */
+  canAction: (action: AppAction) => boolean;
+  /** Convenience: check route access */
+  canRoute: (path: string) => boolean;
+  /** List of specialty codes the user can clinically access */
+  accessibleSpecialties: string[];
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
