@@ -447,7 +447,7 @@ export default function ClinicalWorkspace() {
                   <EmptyState
                     icon={Activity}
                     title="Sin examen físico registrado"
-                    description="Registre los signos vitales e indicadores odontológicos del paciente."
+                    description="Registre los signos vitales e indicadores clínicos del paciente."
                     actionLabel="Registrar examen"
                     onAction={() => toast.info("Registro de examen — en desarrollo")}
                   />
@@ -915,10 +915,13 @@ function ExamenFisicoSection({ examen }: { examen: ExamenFisico }) {
         </CardContent>
       </Card>
 
-      {/* Indicadores Odontológicos */}
+      {/* Indicadores Odontológicos — specialty-specific */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-5 space-y-4">
-          <SectionHeader title="Indicadores odontológicos" icon={ListChecks} size="sm" />
+          <div className="flex items-center gap-2">
+            <SectionHeader title="Indicadores odontológicos" icon={ListChecks} size="sm" />
+            <Badge variant="outline" className="text-[9px] h-4 rounded-full border-primary/30 text-primary">Odontología</Badge>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Índices de higiene */}
