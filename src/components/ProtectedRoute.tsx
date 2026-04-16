@@ -1,11 +1,10 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { canAccessRoute } from "@/lib/permissions";
 import { Loader2 } from "lucide-react";
 import AccessDenied from "@/pages/AccessDenied";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading, profileComplete } = useAuth();
+  const { user, profile, loading, profileComplete, canRoute } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -23,7 +22,6 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  // Inactive user
   if (profile && !profile.activo) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-background">
@@ -37,13 +35,11 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Incomplete profile → redirect to complete (unless already there)
   if (!profileComplete && location.pathname !== "/complete-profile") {
     return <Navigate to="/complete-profile" replace />;
   }
 
-  // Role-based route check
-  if (profile && !canAccessRoute(profile.role, location.pathname)) {
+  if (profile && !canRoute(location.pathname)) {
     return <AccessDenied />;
   }
 
