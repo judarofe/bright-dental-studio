@@ -6,7 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { ClinicalStatusBadge, SummaryPanel } from "@/components/clinical";
+import { SPECIALTY_META, type SpecialtyCode } from "@/lib/clinicalSections";
 import type { ClinicalRecordStatus } from "@/components/clinical";
 import type { HistoriaEstado } from "@/data/clinicalTypes";
 import {
@@ -22,11 +24,14 @@ import {
   Clock,
   FileText,
   Activity,
+  Stethoscope,
+  Filter,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 type FilterTab = "all" | "today" | "recent";
+type SpecialtyFilter = "todas" | SpecialtyCode;
 
 const estadoToStatus: Record<HistoriaEstado, ClinicalRecordStatus> = {
   borrador: "draft",
@@ -35,11 +40,14 @@ const estadoToStatus: Record<HistoriaEstado, ClinicalRecordStatus> = {
   anulada: "voided",
 };
 
+const ALL_SPECIALTIES = Object.values(SPECIALTY_META);
+
 export default function ClinicalHistory() {
   const store = useAppStore();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<FilterTab>("all");
+  const [specialtyFilter, setSpecialtyFilter] = useState<SpecialtyFilter>("todas");
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -56,7 +64,6 @@ export default function ClinicalHistory() {
   const filtered = useMemo(() => {
     let list = store.patients;
 
-    // Tab filter
     if (tab === "today") {
       list = list.filter((p) => todayPatientIds.has(p.id));
     } else if (tab === "recent") {
@@ -70,7 +77,6 @@ export default function ClinicalHistory() {
       list = list.filter((p) => recentIds.has(p.id));
     }
 
-    // Search filter
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -82,14 +88,23 @@ export default function ClinicalHistory() {
       );
     }
 
+    // Specialty filter: since phase 1 only has odontología data,
+    // filtering by other specialties yields empty results
+    if (specialtyFilter !== "todas") {
+      if (specialtyFilter === "odontologia") {
+        list = list.filter((p) => !!store.clinical.getHistoriaByPatient(p.id));
+      } else {
+        list = []; // no data yet for other specialties
+      }
+    }
+
     return list;
-  }, [store.patients, store.appointments, search, tab, todayPatientIds]);
+  }, [store.patients, store.appointments, store.clinical, search, tab, todayPatientIds, specialtyFilter]);
 
   const getPatientContext = (patientId: string) => {
     const historia = store.clinical.getHistoriaByPatient(patientId);
-    const appts = store.getAppointmentsForPatient(patientId);
     const todayAppt = todayAppointments.find((a) => a.patientId === patientId);
-    return { historia, appts, todayAppt };
+    return { historia, todayAppt };
   };
 
   const handleNewHistoria = (patientId: string) => {
@@ -100,13 +115,13 @@ export default function ClinicalHistory() {
     }
 
     const patient = store.patients.find((p) => p.id === patientId);
-    const today = new Date().toISOString().split("T")[0];
+    const todayStr = new Date().toISOString().split("T")[0];
 
     const newHistoria = store.clinical.addHistoria({
       patientId,
       estado: "borrador",
-      creadoEn: today,
-      actualizadoEn: today,
+      creadoEn: todayStr,
+      actualizadoEn: todayStr,
       detalle: {
         motivoConsulta: "",
         anamnesis: "",
@@ -152,7 +167,7 @@ export default function ClinicalHistory() {
       indicadores: {
         piezasTratadas: 0,
         procedimientosPendientes: 0,
-        ultimaVisita: today,
+        ultimaVisita: todayStr,
         proximaCita: "",
         riesgoGeneral: "bajo",
       },
@@ -181,12 +196,9 @@ export default function ClinicalHistory() {
       <div className="page-header">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="page-title">Atención Clínica</h1>
-            <Badge variant="outline" className="gap-1 text-[10px] h-5 rounded-full border-primary/30 text-primary">
-              <Activity className="h-3 w-3" /> Odontología
-            </Badge>
+            <h1 className="page-title">Historial Clínico</h1>
           </div>
-          <p className="page-subtitle">Historias clínicas y atención por especialidad</p>
+          <p className="page-subtitle">Historias clínicas de todas las especialidades</p>
         </div>
       </div>
 
@@ -198,6 +210,56 @@ export default function ClinicalHistory() {
           { label: "Total pacientes", value: store.patients.length, icon: Users, accent: "muted" },
         ]}
       />
+
+      {/* Specialty filter chips */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 text-muted-foreground mr-1">
+              <Stethoscope className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-medium uppercase tracking-wider">Especialidad</span>
+            </div>
+
+            <button
+              onClick={() => setSpecialtyFilter("todas")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                specialtyFilter === "todas"
+                  ? "bg-foreground text-background"
+                  : "bg-muted/60 text-muted-foreground hover:bg-muted"
+              )}
+            >
+              Todas
+            </button>
+
+            {ALL_SPECIALTIES.map((spec) => {
+              const Icon = spec.icon;
+              const isActive = specialtyFilter === spec.code;
+              return (
+                <button
+                  key={spec.code}
+                  onClick={() => setSpecialtyFilter(spec.code)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                    isActive
+                      ? cn(spec.color, spec.textColor, "ring-1", spec.borderColor)
+                      : spec.active
+                      ? "bg-muted/60 text-muted-foreground hover:bg-muted"
+                      : "bg-muted/30 text-muted-foreground/50 cursor-default"
+                  )}
+                  disabled={!spec.active && spec.code !== specialtyFilter}
+                >
+                  <Icon className="h-3 w-3" />
+                  {spec.label}
+                  {!spec.active && (
+                    <span className="text-[9px] opacity-60">Próx.</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Search + Tabs */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -224,14 +286,31 @@ export default function ClinicalHistory() {
         <CardContent className="p-0">
           {filtered.length === 0 ? (
             <div className="py-14 text-center">
-              <Search className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground mb-1">
-                {search ? `Sin resultados para "${search}"` : "No hay pacientes en esta categoría"}
-              </p>
-              {search && (
-                <button onClick={() => setSearch("")} className="text-xs text-primary font-medium hover:underline">
-                  Limpiar búsqueda
-                </button>
+              {specialtyFilter !== "todas" && !SPECIALTY_META[specialtyFilter as SpecialtyCode]?.active ? (
+                <>
+                  <Stethoscope className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {SPECIALTY_META[specialtyFilter as SpecialtyCode]?.label} estará disponible próximamente
+                  </p>
+                  <p className="text-xs text-muted-foreground/60">
+                    Actualmente solo Odontología tiene historias clínicas activas.
+                  </p>
+                  <button onClick={() => setSpecialtyFilter("todas")} className="text-xs text-primary font-medium hover:underline mt-2">
+                    Ver todas las especialidades
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Search className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {search ? `Sin resultados para "${search}"` : "No hay pacientes en esta categoría"}
+                  </p>
+                  {search && (
+                    <button onClick={() => setSearch("")} className="text-xs text-primary font-medium hover:underline">
+                      Limpiar búsqueda
+                    </button>
+                  )}
+                </>
               )}
             </div>
           ) : (
@@ -239,6 +318,9 @@ export default function ClinicalHistory() {
               {filtered.map((p) => {
                 const { historia, todayAppt } = getPatientContext(p.id);
                 const hasAlert = p.notes?.toLowerCase().includes("sensi") || p.notes?.toLowerCase().includes("alergi");
+
+                // Phase 1: all existing histories are odontología
+                const histSpecialty = historia ? SPECIALTY_META.odontologia : null;
 
                 return (
                   <div
@@ -264,6 +346,16 @@ export default function ClinicalHistory() {
                         {historia && (
                           <ClinicalStatusBadge status={estadoToStatus[historia.estado]} variant="pill" />
                         )}
+                        {/* Specialty badge on each row */}
+                        {histSpecialty && (
+                          <Badge variant="outline" className={cn(
+                            "gap-1 text-[9px] h-4 rounded-full px-1.5 border-0",
+                            histSpecialty.color, histSpecialty.textColor
+                          )}>
+                            <histSpecialty.icon className="h-2.5 w-2.5" />
+                            {histSpecialty.label}
+                          </Badge>
+                        )}
                         {todayAppt && (
                           <span className="inline-flex items-center gap-1 text-[10px] font-medium text-primary bg-primary/8 px-2 py-0.5 rounded-full">
                             <Clock className="h-3 w-3" />
@@ -281,6 +373,11 @@ export default function ClinicalHistory() {
                           <Phone className="h-3 w-3" />
                           {p.phone || "Sin teléfono"}
                         </span>
+                        {historia && (
+                          <span className="text-muted-foreground/60">
+                            Actualizada: {new Date(historia.actualizadoEn).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}
+                          </span>
+                        )}
                         <span className="hidden sm:inline">
                           {store.getAppointmentsForPatient(p.id).length} visitas
                         </span>
