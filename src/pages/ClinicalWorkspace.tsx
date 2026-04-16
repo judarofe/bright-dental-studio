@@ -233,7 +233,30 @@ export default function ClinicalWorkspace() {
         <Card className="border-0 shadow-sm shrink-0 hidden md:block w-52">
           <CardContent className="p-2">
             <nav className="space-y-0.5">
-              {SECTIONS.map((s) => (
+              {/* Base clinical sections */}
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-2 pb-1 font-semibold">Historia clínica base</p>
+              {SECTIONS.filter(s => s.group === "base").map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setActiveSection(s.id)}
+                  className={cn(
+                    "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left",
+                    activeSection === s.id
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                  )}
+                >
+                  <s.icon className="h-3.5 w-3.5 shrink-0" />
+                  {s.label}
+                </button>
+              ))}
+
+              {/* Specialty sections */}
+              <Separator className="my-2" />
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-1 pb-1 font-semibold flex items-center gap-1.5">
+                <Activity className="h-3 w-3" /> Odontología
+              </p>
+              {SECTIONS.filter(s => s.group === "odontologia").map((s) => (
                 <button
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
