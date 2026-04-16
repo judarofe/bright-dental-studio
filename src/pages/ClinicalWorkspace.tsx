@@ -281,7 +281,7 @@ export default function ClinicalWorkspace() {
         {/* Mobile section selector */}
         <div className="md:hidden w-full mb-2">
           <div className="flex overflow-x-auto gap-1.5 pb-2 -mx-1 px-1">
-            {SECTIONS.map((s) => (
+            {SECTIONS.filter(s => s.group === "base").map((s) => (
               <button
                 key={s.id}
                 onClick={() => setActiveSection(s.id)}
@@ -290,6 +290,22 @@ export default function ClinicalWorkspace() {
                   activeSection === s.id
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted/60 text-muted-foreground"
+                )}
+              >
+                <s.icon className="h-3 w-3" />
+                {s.label}
+              </button>
+            ))}
+            <Separator orientation="vertical" className="h-6 self-center mx-1" />
+            {SECTIONS.filter(s => s.group === "odontologia").map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setActiveSection(s.id)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors",
+                  activeSection === s.id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-primary/10 text-primary"
                 )}
               >
                 <s.icon className="h-3 w-3" />
