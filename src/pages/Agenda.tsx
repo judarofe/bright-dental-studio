@@ -59,6 +59,9 @@ export default function Agenda() {
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
   const [defaultDate, setDefaultDate] = useState("");
   const [defaultTime, setDefaultTime] = useState("");
+  const [newCareOpen, setNewCareOpen] = useState(false);
+  const [newCarePatientId, setNewCarePatientId] = useState("");
+  const [newCarePatientName, setNewCarePatientName] = useState("");
 
   const today = fmt(new Date());
   const dateStr = fmt(currentDate);
@@ -331,7 +334,11 @@ export default function Agenda() {
                                 </button>
                               ) : (
                                 <button
-                                  onClick={() => toast.info("Funcionalidad próxima", { description: "Crear nueva historia" })}
+                                  onClick={() => {
+                                    setNewCarePatientId(a.patientId);
+                                    setNewCarePatientName(patient?.name || "");
+                                    setNewCareOpen(true);
+                                  }}
                                   className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg hover:bg-accent transition-colors text-left"
                                 >
                                   <FilePlus className="h-3.5 w-3.5 text-primary" />
