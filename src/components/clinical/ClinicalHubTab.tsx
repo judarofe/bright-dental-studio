@@ -476,12 +476,19 @@ export function ClinicalHubTab({ patientId }: Props) {
                 Este paciente aún no tiene historias clínicas registradas. Inicia una nueva atención para comenzar.
               </p>
             </div>
-            <Button className="rounded-xl gap-1.5" onClick={() => toast.info("Iniciar atención — en desarrollo")}>
+            <Button className="rounded-xl gap-1.5" onClick={() => setNewCareOpen(true)}>
               <Plus className="h-4 w-4" /> Nueva atención clínica
             </Button>
           </CardContent>
         </Card>
       )}
+
+      <NewCareDialog
+        open={newCareOpen}
+        onClose={() => setNewCareOpen(false)}
+        patientId={patientId}
+        patientName={patientName}
+      />
     </div>
   );
 }

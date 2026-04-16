@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { NewCareDialog } from "@/components/clinical/NewCareDialog";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/data/StoreContext";
 import { AppointmentModal } from "@/components/AppointmentModal";
