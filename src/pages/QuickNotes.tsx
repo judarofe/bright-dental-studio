@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { SummaryPanel, SectionHeader } from "@/components/clinical";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { SPECIALTY_META, type SpecialtyCode } from "@/lib/clinicalSections";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { NotaCortaOdontologica, NotaEstado } from "@/data/clinicalTypes";
@@ -30,12 +31,13 @@ import {
   Stethoscope,
   ChevronRight,
   Clock,
-  Filter,
   CheckCircle2,
-  AlertTriangle,
 } from "lucide-react";
 
 type FilterTab = "all" | "activa" | "anulada";
+type SpecialtyFilter = "todas" | SpecialtyCode;
+
+const ALL_SPECIALTIES = Object.values(SPECIALTY_META);
 
 export default function QuickNotes() {
   const store = useAppStore();
@@ -46,6 +48,7 @@ export default function QuickNotes() {
   const [tab, setTab] = useState<FilterTab>("all");
   const [dateFilter, setDateFilter] = useState("");
   const [patientFilter, setPatientFilter] = useState("");
+  const [specialtyFilter, setSpecialtyFilter] = useState<SpecialtyFilter>("todas");
 
   // Create/Edit state
   const [showForm, setShowForm] = useState(false);
@@ -54,6 +57,7 @@ export default function QuickNotes() {
   const [formAppointmentId, setFormAppointmentId] = useState("");
   const [formContent, setFormContent] = useState("");
   const [formDiagnosticoIds, setFormDiagnosticoIds] = useState<string[]>([]);
+  const [formSpecialty, setFormSpecialty] = useState<SpecialtyCode>("odontologia");
 
   // Void confirmation
   const [voidingId, setVoidingId] = useState<string | null>(null);
@@ -92,8 +96,17 @@ export default function QuickNotes() {
       list = list.filter((n) => n.patientId === patientFilter);
     }
 
+    // Specialty filter — phase 1: all existing notes are odontología
+    if (specialtyFilter !== "todas") {
+      if (specialtyFilter === "odontologia") {
+        // keep all (phase 1 assumption)
+      } else {
+        list = []; // no data for other specialties yet
+      }
+    }
+
     return list;
-  }, [allNotas, tab, search, dateFilter, patientFilter, store.patients]);
+  }, [allNotas, tab, search, dateFilter, patientFilter, specialtyFilter, store.patients]);
 
   // Stats
   const stats = useMemo(() => ({
@@ -123,6 +136,7 @@ export default function QuickNotes() {
     setFormAppointmentId("");
     setFormContent("");
     setFormDiagnosticoIds([]);
+    setFormSpecialty("odontologia");
   };
 
   const openNew = (patientId?: string, appointmentId?: string) => {
@@ -139,6 +153,7 @@ export default function QuickNotes() {
     setFormAppointmentId(nota.appointmentId || "");
     setFormContent(nota.contenido);
     setFormDiagnosticoIds(nota.diagnosticoIds || []);
+    setFormSpecialty("odontologia"); // phase 1
     setShowForm(true);
   };
 
@@ -195,6 +210,7 @@ export default function QuickNotes() {
       <div class="meta"><strong>Paciente:</strong> ${patient?.name || "—"}</div>
       <div class="meta"><strong>Fecha:</strong> ${nota.fecha}</div>
       <div class="meta"><strong>Profesional:</strong> ${nota.creadoPor}</div>
+      <div class="meta"><strong>Especialidad:</strong> Odontología</div>
       <div class="meta"><strong>Estado:</strong> ${nota.estado}</div>
       <div class="content">${nota.contenido}</div>
       </body></html>
@@ -214,8 +230,8 @@ export default function QuickNotes() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">Notas Cortas</h1>
-          <p className="page-subtitle">Anotaciones rápidas vinculadas a pacientes, citas y diagnósticos</p>
+          <h1 className="page-title">Notas Clínicas</h1>
+          <p className="page-subtitle">Anotaciones rápidas por especialidad, vinculadas a pacientes y diagnósticos</p>
         </div>
         <Button onClick={() => openNew()} className="gap-1.5 rounded-xl h-10 text-sm px-4">
           <Plus className="h-4 w-4" /> Nueva nota
@@ -232,19 +248,99 @@ export default function QuickNotes() {
         ]}
       />
 
+      {/* Specialty filter chips */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 text-muted-foreground mr-1">
+              <Stethoscope className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-medium uppercase tracking-wider">Especialidad</span>
+            </div>
+
+            <button
+              onClick={() => setSpecialtyFilter("todas")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                specialtyFilter === "todas"
+                  ? "bg-foreground text-background"
+                  : "bg-muted/60 text-muted-foreground hover:bg-muted"
+              )}
+            >
+              Todas
+            </button>
+
+            {ALL_SPECIALTIES.map((spec) => {
+              const Icon = spec.icon;
+              const isActive = specialtyFilter === spec.code;
+              return (
+                <button
+                  key={spec.code}
+                  onClick={() => setSpecialtyFilter(spec.code)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                    isActive
+                      ? cn(spec.color, spec.textColor, "ring-1", spec.borderColor)
+                      : spec.active
+                      ? "bg-muted/60 text-muted-foreground hover:bg-muted"
+                      : "bg-muted/30 text-muted-foreground/50 cursor-default"
+                  )}
+                  disabled={!spec.active && spec.code !== specialtyFilter}
+                >
+                  <Icon className="h-3 w-3" />
+                  {spec.label}
+                  {!spec.active && (
+                    <span className="text-[9px] opacity-60">Próx.</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Create/Edit form */}
       {showForm && (
         <Card className="border-0 shadow-md ring-1 ring-primary/10">
           <CardContent className="p-5 space-y-4">
             <div className="flex items-center justify-between">
               <SectionHeader
-                title={editingId ? "Editar nota" : "Nueva nota corta"}
+                title={editingId ? "Editar nota" : "Nueva nota clínica"}
                 icon={editingId ? Pencil : Plus}
                 size="sm"
               />
               <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={resetForm}>
                 <X className="h-4 w-4" />
               </Button>
+            </div>
+
+            {/* Specialty selector */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Especialidad</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {ALL_SPECIALTIES.map((spec) => {
+                  const Icon = spec.icon;
+                  const selected = formSpecialty === spec.code;
+                  return (
+                    <button
+                      key={spec.code}
+                      onClick={() => spec.active && setFormSpecialty(spec.code)}
+                      disabled={!spec.active}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
+                        selected
+                          ? cn("border-primary/40 bg-primary/10 text-primary")
+                          : spec.active
+                          ? "border-border/60 bg-background text-muted-foreground hover:border-primary/30"
+                          : "border-border/30 bg-muted/20 text-muted-foreground/40 cursor-not-allowed"
+                      )}
+                    >
+                      <Icon className="h-3 w-3" />
+                      {spec.label}
+                      {!spec.active && <span className="text-[9px]">Próx.</span>}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Patient select */}
@@ -404,14 +500,31 @@ export default function QuickNotes() {
       {filtered.length === 0 ? (
         <Card className="border-0 shadow-sm">
           <CardContent className="py-14 text-center">
-            <StickyNote className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground mb-1">
-              {search || dateFilter || patientFilter ? "Sin resultados con estos filtros" : "No hay notas registradas"}
-            </p>
-            {!showForm && (
-              <Button variant="outline" size="sm" className="rounded-xl gap-1.5 mt-3 text-xs" onClick={() => openNew()}>
-                <Plus className="h-3.5 w-3.5" /> Crear primera nota
-              </Button>
+            {specialtyFilter !== "todas" && !SPECIALTY_META[specialtyFilter as SpecialtyCode]?.active ? (
+              <>
+                <Stethoscope className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground mb-1">
+                  Notas de {SPECIALTY_META[specialtyFilter as SpecialtyCode]?.label} estarán disponibles próximamente
+                </p>
+                <p className="text-xs text-muted-foreground/60">
+                  Actualmente solo Odontología tiene notas clínicas activas.
+                </p>
+                <button onClick={() => setSpecialtyFilter("todas")} className="text-xs text-primary font-medium hover:underline mt-2">
+                  Ver todas las especialidades
+                </button>
+              </>
+            ) : (
+              <>
+                <StickyNote className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground mb-1">
+                  {search || dateFilter || patientFilter ? "Sin resultados con estos filtros" : "No hay notas registradas"}
+                </p>
+                {!showForm && (
+                  <Button variant="outline" size="sm" className="rounded-xl gap-1.5 mt-3 text-xs" onClick={() => openNew()}>
+                    <Plus className="h-3.5 w-3.5" /> Crear primera nota
+                  </Button>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
@@ -424,6 +537,9 @@ export default function QuickNotes() {
             const appointment = nota.appointmentId ? store.appointments.find((a) => a.id === nota.appointmentId) : null;
             const linkedDx = nota.diagnosticoIds?.map((dxId) => clinical.diagnosticos.find((d) => d.id === dxId)).filter(Boolean) || [];
             const isVoided = nota.estado === "anulada";
+            // Phase 1: all notes belong to odontología
+            const notaSpecialty = SPECIALTY_META.odontologia;
+            const SpecIcon = notaSpecialty.icon;
 
             return (
               <Card key={nota.id} className={cn("border-0 shadow-sm transition-all hover:shadow-md", isVoided && "opacity-50")}>
@@ -460,6 +576,14 @@ export default function QuickNotes() {
                           )}
                         >
                           {isVoided ? "Anulada" : "Activa"}
+                        </Badge>
+                        {/* Specialty badge */}
+                        <Badge variant="outline" className={cn(
+                          "gap-1 text-[9px] h-4 rounded-full px-1.5 border-0",
+                          notaSpecialty.color, notaSpecialty.textColor
+                        )}>
+                          <SpecIcon className="h-2.5 w-2.5" />
+                          {notaSpecialty.label}
                         </Badge>
                         {nota.tipo === "voz" && nota.duracionSegundos && (
                           <span className="text-[10px] text-primary font-medium">{nota.duracionSegundos}s audio</span>
