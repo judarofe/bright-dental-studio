@@ -8,11 +8,13 @@ import {
   Clock,
   BarChart3,
   Settings,
+  ClipboardList,
+  Stethoscope,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
 import { canAccessModule, type AppModule } from "@/lib/permissions";
-import { getSpecialtyModules } from "@/lib/specialties";
+import { hasSpecialty } from "@/lib/specialties";
 import {
   Sidebar,
   SidebarContent,
@@ -30,21 +32,32 @@ interface NavItem {
   url: string;
   icon: React.ComponentType<{ className?: string }>;
   module: AppModule;
-  requiresSpecialty?: string; // specialty code required to show this item
+  requiresSpecialty?: string;
+  badge?: string; // small label like "Fase 1"
 }
 
-const mainItems: NavItem[] = [
+/* ── Núcleo ─────────────────────────────────── */
+const coreItems: NavItem[] = [
   { title: "Inicio", url: "/", icon: LayoutDashboard, module: "dashboard" },
   { title: "Agenda", url: "/agenda", icon: CalendarDays, module: "agenda" },
   { title: "Pacientes", url: "/patients", icon: Users, module: "patients" },
   { title: "Pagos", url: "/payments", icon: CreditCard, module: "payments" },
 ];
 
+/* ── Atención Clínica ───────────────────────── */
 const clinicalItems: NavItem[] = [
-  { title: "Historia Odontológica", url: "/clinical", icon: HeartPulse, module: "clinical", requiresSpecialty: "odontologia" },
-  { title: "Notas Cortas", url: "/notes", icon: StickyNote, module: "notes" },
+  { title: "Historias Clínicas", url: "/clinical", icon: ClipboardList, module: "clinical" },
+  { title: "Notas Rápidas", url: "/notes", icon: StickyNote, module: "notes" },
 ];
 
+/* ── Especialidades ─────────────────────────── */
+const specialtyItems: NavItem[] = [
+  { title: "Odontología", url: "/specialty/odontologia", icon: HeartPulse, module: "clinical", requiresSpecialty: "odontologia", badge: "Activo" },
+  // Future: { title: "Medicina General", url: "/specialty/medicina", icon: Stethoscope, module: "clinical", requiresSpecialty: "medicina" },
+  // Future: { title: "Psicología", url: "/specialty/psicologia", icon: Brain, module: "clinical", requiresSpecialty: "psicologia" },
+];
+
+/* ── Administración ─────────────────────────── */
 const adminItems: NavItem[] = [
   { title: "Históricos", url: "/history", icon: Clock, module: "history" },
   { title: "Reportes", url: "/reports", icon: BarChart3, module: "reports" },
@@ -61,18 +74,15 @@ function NavGroup({
   collapsed: boolean;
 }) {
   const { profile, specialtyCodes } = useAuth();
-  const specialtyModules = getSpecialtyModules(specialtyCodes);
-  
+
   const filtered = items.filter((item) => {
-    // Check role-based access
     if (!canAccessModule(profile?.role, item.module)) return false;
-    // Check specialty requirement — admins bypass specialty check
     if (item.requiresSpecialty && profile?.role !== "admin") {
       if (!specialtyCodes.includes(item.requiresSpecialty)) return false;
     }
     return true;
   });
-  
+
   if (filtered.length === 0) return null;
 
   return (
@@ -94,7 +104,16 @@ function NavGroup({
                   activeClassName="bg-primary/10 text-primary"
                 >
                   <item.icon className="h-[18px] w-[18px] shrink-0" />
-                  {!collapsed && <span>{item.title}</span>}
+                  {!collapsed && (
+                    <span className="flex-1 flex items-center justify-between">
+                      <span>{item.title}</span>
+                      {item.badge && (
+                        <span className="text-[9px] font-semibold uppercase tracking-wide bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
+                    </span>
+                  )}
                 </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -127,8 +146,9 @@ export function AppSidebar() {
           )}
         </div>
 
-        <NavGroup label="Principal" items={mainItems} collapsed={collapsed} />
-        <NavGroup label="Clínica" items={clinicalItems} collapsed={collapsed} />
+        <NavGroup label="Núcleo" items={coreItems} collapsed={collapsed} />
+        <NavGroup label="Atención Clínica" items={clinicalItems} collapsed={collapsed} />
+        <NavGroup label="Especialidades" items={specialtyItems} collapsed={collapsed} />
         <NavGroup label="Administración" items={adminItems} collapsed={collapsed} />
       </SidebarContent>
     </Sidebar>

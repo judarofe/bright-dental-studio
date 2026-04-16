@@ -22,6 +22,7 @@ import History from "./pages/History";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import ClinicalWorkspace from "./pages/ClinicalWorkspace";
+import { Navigate } from "react-router-dom";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ const App = () => (
                         <Route path="/patients/:id" element={<PatientDetail />} />
                         <Route path="/payments" element={<Payments />} />
                         <Route path="/clinical" element={<ClinicalHistory />} />
+                        <Route path="/specialty/odontologia" element={<Navigate to="/clinical" replace />} />
                         <Route path="/notes" element={<QuickNotes />} />
                         <Route path="/history" element={<History />} />
                         <Route path="/reports" element={<Reports />} />
