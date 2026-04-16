@@ -1,15 +1,20 @@
 import { useState } from "react";
 import { useAppStore } from "@/data/StoreContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { StatCard } from "@/components/StatCard";
 import { AppointmentModal } from "@/components/AppointmentModal";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, CalendarDays, DollarSign, Plus, CheckCircle2, Ban, CircleDollarSign } from "lucide-react";
+import { SPECIALTY_META, type SpecialtyCode } from "@/lib/clinicalSections";
+import { Users, CalendarDays, DollarSign, Plus, CheckCircle2, Ban, CircleDollarSign, Stethoscope } from "lucide-react";
 import { Appointment } from "@/data/store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+const ALL_SPEC_CODES: SpecialtyCode[] = ["odontologia", "medicina", "psicologia", "enfermeria"];
 
 export default function Dashboard() {
   const store = useAppStore();
