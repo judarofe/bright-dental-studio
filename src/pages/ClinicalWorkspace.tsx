@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/data/StoreContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { ClinicalStatusBadge, ClinicalAlert, SectionHeader, ValidationChecklist } from "@/components/clinical";
@@ -54,18 +55,27 @@ import {
 
 type SectionId = "motivo" | "antecedentes" | "examen" | "exploracion" | "diagnosticos" | "odontograma" | "plan" | "prescripciones" | "notas" | "cierre" | "revision";
 
-const SECTIONS: { id: SectionId; label: string; icon: typeof ClipboardList }[] = [
-  { id: "motivo", label: "Motivo y anamnesis", icon: ClipboardList },
-  { id: "antecedentes", label: "Antecedentes", icon: FileText },
-  { id: "examen", label: "Examen físico", icon: Activity },
-  { id: "exploracion", label: "Exploración", icon: Stethoscope },
-  { id: "diagnosticos", label: "Diagnósticos", icon: AlertTriangle },
-  { id: "odontograma", label: "Odontograma", icon: Activity },
-  { id: "plan", label: "Plan de tratamiento", icon: CheckCircle2 },
-  { id: "prescripciones", label: "Prescripciones", icon: Pill },
-  { id: "notas", label: "Notas", icon: StickyNote },
-  { id: "cierre", label: "Cierre y conducta", icon: Lock },
-  { id: "revision", label: "Revisión final", icon: ClipboardCheck },
+interface SectionDef {
+  id: SectionId;
+  label: string;
+  icon: typeof ClipboardList;
+  group: "base" | "odontologia";
+}
+
+const SECTIONS: SectionDef[] = [
+  // Base clinical sections — shared across all specialties
+  { id: "motivo", label: "Motivo y anamnesis", icon: ClipboardList, group: "base" },
+  { id: "antecedentes", label: "Antecedentes", icon: FileText, group: "base" },
+  { id: "examen", label: "Examen físico", icon: Activity, group: "base" },
+  { id: "exploracion", label: "Exploración", icon: Stethoscope, group: "base" },
+  { id: "diagnosticos", label: "Diagnósticos", icon: AlertTriangle, group: "base" },
+  { id: "plan", label: "Plan de tratamiento", icon: CheckCircle2, group: "base" },
+  { id: "prescripciones", label: "Prescripciones", icon: Pill, group: "base" },
+  { id: "notas", label: "Notas", icon: StickyNote, group: "base" },
+  { id: "cierre", label: "Cierre y conducta", icon: Lock, group: "base" },
+  { id: "revision", label: "Revisión final", icon: ClipboardCheck, group: "base" },
+  // Odontología — specialty-specific
+  { id: "odontograma", label: "Odontograma", icon: Activity, group: "odontologia" },
 ];
 
 export default function ClinicalWorkspace() {
@@ -187,6 +197,9 @@ export default function ClinicalWorkspace() {
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-lg font-bold text-foreground">{patient.name}</h1>
                 {badgeStatus && <ClinicalStatusBadge status={badgeStatus} variant="pill" />}
+                <Badge variant="outline" className="gap-1 text-[10px] h-5 rounded-full border-primary/30 text-primary">
+                  <Activity className="h-3 w-3" /> Odontología
+                </Badge>
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
                 <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {patient.phone}</span>
@@ -223,7 +236,30 @@ export default function ClinicalWorkspace() {
         <Card className="border-0 shadow-sm shrink-0 hidden md:block w-52">
           <CardContent className="p-2">
             <nav className="space-y-0.5">
-              {SECTIONS.map((s) => (
+              {/* Base clinical sections */}
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-2 pb-1 font-semibold">Historia clínica base</p>
+              {SECTIONS.filter(s => s.group === "base").map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setActiveSection(s.id)}
+                  className={cn(
+                    "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left",
+                    activeSection === s.id
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                  )}
+                >
+                  <s.icon className="h-3.5 w-3.5 shrink-0" />
+                  {s.label}
+                </button>
+              ))}
+
+              {/* Specialty sections */}
+              <Separator className="my-2" />
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-1 pb-1 font-semibold flex items-center gap-1.5">
+                <Activity className="h-3 w-3" /> Odontología
+              </p>
+              {SECTIONS.filter(s => s.group === "odontologia").map((s) => (
                 <button
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
@@ -245,7 +281,7 @@ export default function ClinicalWorkspace() {
         {/* Mobile section selector */}
         <div className="md:hidden w-full mb-2">
           <div className="flex overflow-x-auto gap-1.5 pb-2 -mx-1 px-1">
-            {SECTIONS.map((s) => (
+            {SECTIONS.filter(s => s.group === "base").map((s) => (
               <button
                 key={s.id}
                 onClick={() => setActiveSection(s.id)}
@@ -254,6 +290,22 @@ export default function ClinicalWorkspace() {
                   activeSection === s.id
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted/60 text-muted-foreground"
+                )}
+              >
+                <s.icon className="h-3 w-3" />
+                {s.label}
+              </button>
+            ))}
+            <Separator orientation="vertical" className="h-6 self-center mx-1" />
+            {SECTIONS.filter(s => s.group === "odontologia").map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setActiveSection(s.id)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors",
+                  activeSection === s.id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-primary/10 text-primary"
                 )}
               >
                 <s.icon className="h-3 w-3" />
@@ -395,7 +447,7 @@ export default function ClinicalWorkspace() {
                   <EmptyState
                     icon={Activity}
                     title="Sin examen físico registrado"
-                    description="Registre los signos vitales e indicadores odontológicos del paciente."
+                    description="Registre los signos vitales e indicadores clínicos del paciente."
                     actionLabel="Registrar examen"
                     onAction={() => toast.info("Registro de examen — en desarrollo")}
                   />
@@ -863,10 +915,13 @@ function ExamenFisicoSection({ examen }: { examen: ExamenFisico }) {
         </CardContent>
       </Card>
 
-      {/* Indicadores Odontológicos */}
+      {/* Indicadores Odontológicos — specialty-specific */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-5 space-y-4">
-          <SectionHeader title="Indicadores odontológicos" icon={ListChecks} size="sm" />
+          <div className="flex items-center gap-2">
+            <SectionHeader title="Indicadores odontológicos" icon={ListChecks} size="sm" />
+            <Badge variant="outline" className="text-[9px] h-4 rounded-full border-primary/30 text-primary">Odontología</Badge>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Índices de higiene */}

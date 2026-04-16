@@ -178,8 +178,8 @@ export default function ClinicalHistory() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">Historia Odontológica</h1>
-          <p className="page-subtitle">Selección rápida de paciente para registro clínico</p>
+          <h1 className="page-title">Historias Clínicas</h1>
+          <p className="page-subtitle">Gestión de historias clínicas por paciente y especialidad</p>
         </div>
       </div>
 
@@ -187,7 +187,7 @@ export default function ClinicalHistory() {
       <SummaryPanel
         items={[
           { label: "Pacientes hoy", value: todayCount, icon: CalendarCheck, accent: "primary" },
-          { label: "Con historia", value: withHistoria, icon: FileText, accent: "success" },
+          { label: "Con historia clínica", value: withHistoria, icon: FileText, accent: "success" },
           { label: "Total pacientes", value: store.patients.length, icon: Users, accent: "muted" },
         ]}
       />
