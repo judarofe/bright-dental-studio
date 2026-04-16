@@ -174,8 +174,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const profileComplete = isProfileComplete(profile);
   const specialtyCodes = specialties.map((s) => s.code);
 
+  const access: AccessContext = useMemo(
+    () => ({ role: profile?.role ?? null, specialtyCodes }),
+    [profile?.role, specialtyCodes]
+  );
+
+  const canModule = useCallback((m: AppModule) => canAccessModule(access.role, m), [access.role]);
+  const canSpecialtyFn = useCallback((code: string) => canAccessSpecialty(access, code), [access]);
+  const canAction = useCallback((a: AppAction) => canPerformAction(access.role, a), [access.role]);
+  const canRoute = useCallback((path: string) => canAccessRoute(access.role, path, specialtyCodes), [access.role, specialtyCodes]);
+  const accessibleSpecs = useMemo(() => getAccessibleSpecialties(access), [access]);
+
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, profileComplete, specialties, specialtyCodes, signIn, signUp, signOut, refreshProfile, forgotPassword }}>
+    <AuthContext.Provider value={{
+      user, session, profile, loading, profileComplete, specialties, specialtyCodes,
+      access,
+      canModule,
+      canSpecialty: canSpecialtyFn,
+      canAction,
+      canRoute,
+      accessibleSpecialties: accessibleSpecs,
+      signIn, signUp, signOut, refreshProfile, forgotPassword,
+    }}>
       {children}
     </AuthContext.Provider>
   );
