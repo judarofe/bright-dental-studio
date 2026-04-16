@@ -187,7 +187,7 @@ export default function ClinicalHistory() {
       <SummaryPanel
         items={[
           { label: "Pacientes hoy", value: todayCount, icon: CalendarCheck, accent: "primary" },
-          { label: "Con historia", value: withHistoria, icon: FileText, accent: "success" },
+          { label: "Con historia clínica", value: withHistoria, icon: FileText, accent: "success" },
           { label: "Total pacientes", value: store.patients.length, icon: Users, accent: "muted" },
         ]}
       />
