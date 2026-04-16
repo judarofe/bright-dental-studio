@@ -197,6 +197,9 @@ export default function ClinicalWorkspace() {
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-lg font-bold text-foreground">{patient.name}</h1>
                 {badgeStatus && <ClinicalStatusBadge status={badgeStatus} variant="pill" />}
+                <Badge variant="outline" className="gap-1 text-[10px] h-5 rounded-full border-primary/30 text-primary">
+                  <Activity className="h-3 w-3" /> Odontología
+                </Badge>
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
                 <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {patient.phone}</span>
