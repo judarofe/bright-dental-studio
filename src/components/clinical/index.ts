@@ -5,3 +5,4 @@ export { SummaryPanel } from "./SummaryPanel";
 export { SectionHeader } from "./SectionHeader";
 export { ClinicalEmptyState } from "./ClinicalEmptyState";
 export { ValidationChecklist } from "./ValidationChecklist";
+export { ClinicalHubTab } from "./ClinicalHubTab";
