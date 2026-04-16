@@ -24,6 +24,9 @@ import {
   Heart,
   Brain,
   Syringe,
+  User,
+  Cigarette,
+  ListChecks,
 } from "lucide-react";
 
 /* ── Types ───────────────────────────────────── */
@@ -49,15 +52,14 @@ export interface SpecialtyMeta {
 /* ── Base sections (all specialties) ─────────── */
 
 export const BASE_SECTIONS: ClinicalSectionDef[] = [
-  { id: "motivo", label: "Motivo y anamnesis", icon: ClipboardList },
-  { id: "antecedentes", label: "Antecedentes", icon: FileText },
-  { id: "examen", label: "Examen físico", icon: Activity },
-  { id: "exploracion", label: "Exploración", icon: Stethoscope },
-  { id: "diagnosticos", label: "Diagnósticos", icon: AlertTriangle },
+  { id: "motivo", label: "Motivo de consulta", icon: ClipboardList },
+  { id: "antecedentes", label: "Antecedentes médicos", icon: FileText },
+  { id: "examen", label: "Examen físico general", icon: Activity },
+  { id: "diagnosticos", label: "Diagnósticos generales", icon: AlertTriangle },
   { id: "plan", label: "Plan de tratamiento", icon: CheckCircle2 },
   { id: "prescripciones", label: "Prescripciones", icon: Pill },
-  { id: "notas", label: "Notas", icon: StickyNote },
-  { id: "cierre", label: "Cierre y conducta", icon: Lock },
+  { id: "notas", label: "Notas clínicas", icon: StickyNote },
+  { id: "cierre", label: "Cierre y auditoría", icon: Lock },
   { id: "revision", label: "Revisión final", icon: ClipboardCheck },
 ];
 
@@ -65,7 +67,13 @@ export const BASE_SECTIONS: ClinicalSectionDef[] = [
 
 export const SPECIALTY_SECTIONS: Record<SpecialtyCode, ClinicalSectionDef[]> = {
   odontologia: [
+    { id: "antecedentes_odonto", label: "Antecedentes odontológicos", icon: Stethoscope },
+    { id: "habitos_orales", label: "Hábitos orales", icon: Cigarette },
+    { id: "examen_odonto", label: "Exploración odontológica", icon: Stethoscope },
+    { id: "indicadores_odonto", label: "Indicadores odontológicos", icon: ListChecks },
     { id: "odontograma", label: "Odontograma", icon: Activity },
+    { id: "diagnosticos_odonto", label: "Diagnósticos odontológicos", icon: AlertTriangle },
+    { id: "conducta_odonto", label: "Conducta odontológica", icon: Lock },
   ],
   medicina: [
     // Future: { id: "laboratorios", label: "Laboratorios", icon: FlaskConical },

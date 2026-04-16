@@ -241,22 +241,27 @@ export default function ClinicalWorkspace() {
       {/* ── Main layout: sidebar nav + content ── */}
       <div className="flex gap-4 items-start">
         {/* Desktop section nav */}
-        <Card className="border-0 shadow-sm shrink-0 hidden md:block w-52">
+        <Card className="border-0 shadow-sm shrink-0 hidden md:block w-56">
           <CardContent className="p-2">
             <nav className="space-y-0.5">
-              {/* Core clinical sections */}
+              {/* ── Historia clínica base ── */}
               <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-2 pb-1 font-semibold">
-                Núcleo clínico
+                Historia clínica base
               </p>
               {baseSections.map(renderNavItem)}
 
-              {/* Specialty-specific sections */}
+              {/* ── Specialty-specific sections ── */}
               {specialtySections.length > 0 && (
                 <>
                   <Separator className="my-2" />
-                  <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-1 pb-1 font-semibold flex items-center gap-1.5">
-                    <SpecIcon className="h-3 w-3" /> {specialtyMeta.label}
-                  </p>
+                  <div className="flex items-center gap-1.5 px-3 pt-1 pb-1">
+                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 font-semibold flex items-center gap-1.5">
+                      <SpecIcon className="h-3 w-3" /> {specialtyMeta.label}
+                    </p>
+                    <Badge variant="outline" className={cn("text-[8px] h-3.5 px-1 rounded-full border-0", specialtyMeta.color, specialtyMeta.textColor)}>
+                      Activa
+                    </Badge>
+                  </div>
                   {specialtySections.map(renderNavItem)}
                 </>
               )}
@@ -266,26 +271,12 @@ export default function ClinicalWorkspace() {
 
         {/* Mobile section selector */}
         <div className="md:hidden w-full mb-2">
-          <div className="flex overflow-x-auto gap-1.5 pb-2 -mx-1 px-1">
-            {baseSections.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => setActiveSection(s.id)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors",
-                  activeSection === s.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/60 text-muted-foreground"
-                )}
-              >
-                <s.icon className="h-3 w-3" />
-                {s.label}
-              </button>
-            ))}
-            {specialtySections.length > 0 && (
-              <>
-                <Separator orientation="vertical" className="h-6 self-center mx-1" />
-                {specialtySections.map((s) => (
+          <div className="space-y-2">
+            {/* Base sections chips */}
+            <div>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 font-semibold mb-1 px-1">Historia clínica base</p>
+              <div className="flex overflow-x-auto gap-1.5 pb-1 -mx-1 px-1">
+                {baseSections.map((s) => (
                   <button
                     key={s.id}
                     onClick={() => setActiveSection(s.id)}
@@ -293,21 +284,49 @@ export default function ClinicalWorkspace() {
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors",
                       activeSection === s.id
                         ? "bg-primary text-primary-foreground"
-                        : "bg-primary/10 text-primary"
+                        : "bg-muted/60 text-muted-foreground"
                     )}
                   >
                     <s.icon className="h-3 w-3" />
                     {s.label}
                   </button>
                 ))}
-              </>
+              </div>
+            </div>
+            {/* Specialty sections chips */}
+            {specialtySections.length > 0 && (
+              <div>
+                <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 font-semibold mb-1 px-1 flex items-center gap-1">
+                  <SpecIcon className="h-3 w-3" /> {specialtyMeta.label}
+                </p>
+                <div className="flex overflow-x-auto gap-1.5 pb-1 -mx-1 px-1">
+                  {specialtySections.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => setActiveSection(s.id)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors",
+                        activeSection === s.id
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-primary/10 text-primary"
+                      )}
+                    >
+                      <s.icon className="h-3 w-3" />
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         </div>
 
         {/* ── Content area ── */}
         <div className="flex-1 min-w-0 space-y-4">
-          {/* ────────── BASE SECTIONS ────────── */}
+
+          {/* ══════════════════════════════════════════
+               HISTORIA CLÍNICA BASE — secciones comunes
+             ══════════════════════════════════════════ */}
 
           {activeSection === "motivo" && (
             <div className="space-y-4">
@@ -380,38 +399,14 @@ export default function ClinicalWorkspace() {
               />
 
               <ClinicalTextField
-                title="Antecedentes odontológicos"
-                icon={Stethoscope}
-                value={historia.detalle.antecedentesOdontologicos}
-                placeholder="Historial de tratamientos dentales previos, experiencias con anestesia, complicaciones…"
-                rows={3}
-                templates={[
-                  "Sin tratamientos odontológicos previos significativos. Niega complicaciones con anestesia local.",
-                  "Antecedentes de [endodoncia/exodoncia/restauraciones] en piezas [números]. Última visita odontológica hace [tiempo].",
-                ]}
-              />
-
-              <ClinicalTextField
                 title="Antecedentes familiares"
                 icon={Users}
                 value={historia.detalle.antecedentesFamiliares}
                 placeholder="Enfermedades hereditarias, condiciones familiares relevantes…"
                 rows={3}
                 templates={[
-                  "Sin antecedentes familiares relevantes para la salud oral.",
-                  "Antecedentes familiares de [diabetes/hipertensión/enfermedad periodontal/cáncer oral] en [parentesco].",
-                ]}
-              />
-
-              <ClinicalTextField
-                title="Hábitos"
-                icon={Cigarette}
-                value={historia.detalle.habitos}
-                placeholder="Tabaquismo, bruxismo, onicofagia, respiración oral, dieta cariogénica…"
-                rows={3}
-                templates={[
-                  "Niega tabaquismo, alcoholismo y consumo de sustancias. Sin hábitos parafuncionales. Dieta balanceada.",
-                  "Bruxismo [diurno/nocturno]. [Usa/No usa] placa oclusal. Tabaquismo: [cigarrillos/día]. Consumo de [café/bebidas azucaradas]: [frecuencia].",
+                  "Sin antecedentes familiares relevantes.",
+                  "Antecedentes familiares de [diabetes/hipertensión/cáncer] en [parentesco].",
                 ]}
               />
 
@@ -423,7 +418,7 @@ export default function ClinicalWorkspace() {
                 rows={4}
                 templates={[
                   "Cardiovascular: normal. Respiratorio: normal. Endocrino: normal. Digestivo: normal. Neurológico: normal. Musculoesquelético: normal. Genitourinario: normal.",
-                  "Cardiovascular: [hallazgo]. Respiratorio: [hallazgo]. Endocrino: [hallazgo]. Digestivo: [hallazgo]. Sin otros hallazgos relevantes.",
+                  "Cardiovascular: [hallazgo]. Respiratorio: [hallazgo]. Endocrino: [hallazgo]. Sin otros hallazgos relevantes.",
                 ]}
               />
             </div>
@@ -444,27 +439,8 @@ export default function ClinicalWorkspace() {
                     "Paciente en regular estado general. Se observa [hallazgo]. Adenopatías [palpables/no palpables] en [región].",
                   ]}
                 />
-
-                <ClinicalTextField
-                  title="Examen físico específico (cabeza y cuello)"
-                  icon={Stethoscope}
-                  value={historia.detalle.examenFisico.especifico}
-                  placeholder="ATM, apertura bucal, mucosa oral, piso de boca, lengua, paladar, orofaringe…"
-                  rows={4}
-                  required
-                  templates={[
-                    "ATM sin chasquidos ni crepitaciones. Apertura bucal adecuada (>40mm). Mucosa oral sin lesiones. Encías rosadas y firmes. Piso de boca y lengua sin alteraciones. Paladar duro y blando normales. Orofaringe sin hallazgos.",
-                    "ATM con [chasquido/crepitación] en [lado]. Apertura bucal [limitada/normal] ([mm]mm). Mucosa [hallazgo]. Encías [hallazgo]. [Otros hallazgos].",
-                  ]}
-                />
-
-                {/* Shared vitals */}
+                {/* Shared vitals — common to all specialties */}
                 <VitalsSection examen={historia.detalle.examenFisico} />
-
-                {/* Specialty-specific: odontologic indicators */}
-                {ACTIVE_SPECIALTY === "odontologia" && (
-                  <OdontologicIndicators examen={historia.detalle.examenFisico} />
-                )}
               </div>
             ) : (
               <Card className="border-0 shadow-sm">
@@ -481,18 +457,6 @@ export default function ClinicalWorkspace() {
             )
           )}
 
-          {activeSection === "exploracion" && (
-            <SectionCard title="Exploración clínica" icon={Stethoscope}>
-              <Textarea
-                defaultValue={historia.detalle.exploracionClinica}
-                placeholder="Hallazgos de la exploración clínica…"
-                rows={6}
-                className="rounded-xl resize-none text-sm"
-                readOnly={isLocked}
-              />
-            </SectionCard>
-          )}
-
           {activeSection === "diagnosticos" && (
             <DiagnosticosSection diagnosticos={diagnosticos} historiaId={historia.id} />
           )}
@@ -501,7 +465,7 @@ export default function ClinicalWorkspace() {
             <SectionCard title="Plan de tratamiento" icon={CheckCircle2}>
               <Textarea
                 defaultValue={historia.detalle.planTratamiento}
-                placeholder="Defina el plan de tratamiento: fases, procedimientos por pieza, prioridades…"
+                placeholder="Defina el plan de tratamiento: fases, procedimientos, prioridades…"
                 rows={6}
                 className="rounded-xl resize-none text-sm"
                 readOnly={isLocked}
@@ -625,10 +589,117 @@ export default function ClinicalWorkspace() {
             />
           )}
 
-          {/* ────────── SPECIALTY SECTIONS ────────── */}
-          {/* Odontología-specific */}
+          {/* ══════════════════════════════════════════
+               ODONTOLOGÍA — secciones específicas
+             ══════════════════════════════════════════ */}
+
+          {ACTIVE_SPECIALTY === "odontologia" && activeSection === "antecedentes_odonto" && (
+            <div className="space-y-4">
+              <SpecialtyBanner meta={specialtyMeta} />
+              <ClinicalTextField
+                title="Antecedentes odontológicos"
+                icon={Stethoscope}
+                value={historia.detalle.antecedentesOdontologicos}
+                placeholder="Historial de tratamientos dentales previos, experiencias con anestesia, complicaciones…"
+                rows={4}
+                templates={[
+                  "Sin tratamientos odontológicos previos significativos. Niega complicaciones con anestesia local.",
+                  "Antecedentes de [endodoncia/exodoncia/restauraciones] en piezas [números]. Última visita odontológica hace [tiempo].",
+                ]}
+              />
+            </div>
+          )}
+
+          {ACTIVE_SPECIALTY === "odontologia" && activeSection === "habitos_orales" && (
+            <div className="space-y-4">
+              <SpecialtyBanner meta={specialtyMeta} />
+              <ClinicalTextField
+                title="Hábitos orales"
+                icon={Cigarette}
+                value={historia.detalle.habitos}
+                placeholder="Bruxismo, onicofagia, respiración oral, dieta cariogénica, tabaquismo…"
+                rows={4}
+                templates={[
+                  "Niega hábitos parafuncionales. Sin bruxismo. Dieta balanceada, baja en azúcares. Higiene oral 2-3 veces/día.",
+                  "Bruxismo [diurno/nocturno]. [Usa/No usa] placa oclusal. Tabaquismo: [cigarrillos/día]. Consumo de [café/bebidas azucaradas]: [frecuencia].",
+                ]}
+              />
+            </div>
+          )}
+
+          {ACTIVE_SPECIALTY === "odontologia" && activeSection === "examen_odonto" && (
+            historia.detalle.examenFisico ? (
+              <div className="space-y-4">
+                <SpecialtyBanner meta={specialtyMeta} />
+                <ClinicalTextField
+                  title="Exploración odontológica (cabeza y cuello)"
+                  icon={Stethoscope}
+                  value={historia.detalle.examenFisico.especifico}
+                  placeholder="ATM, apertura bucal, mucosa oral, piso de boca, lengua, paladar, orofaringe…"
+                  rows={4}
+                  required
+                  templates={[
+                    "ATM sin chasquidos ni crepitaciones. Apertura bucal adecuada (>40mm). Mucosa oral sin lesiones. Encías rosadas y firmes. Piso de boca y lengua sin alteraciones. Paladar duro y blando normales. Orofaringe sin hallazgos.",
+                    "ATM con [chasquido/crepitación] en [lado]. Apertura bucal [limitada/normal] ([mm]mm). Mucosa [hallazgo]. Encías [hallazgo]. [Otros hallazgos].",
+                  ]}
+                />
+              </div>
+            ) : (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-0">
+                  <EmptyState
+                    icon={Stethoscope}
+                    title="Sin exploración odontológica"
+                    description="Complete primero el examen físico general."
+                  />
+                </CardContent>
+              </Card>
+            )
+          )}
+
+          {ACTIVE_SPECIALTY === "odontologia" && activeSection === "indicadores_odonto" && (
+            historia.detalle.examenFisico ? (
+              <div className="space-y-4">
+                <SpecialtyBanner meta={specialtyMeta} />
+                <OdontologicIndicators examen={historia.detalle.examenFisico} />
+              </div>
+            ) : (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-0">
+                  <EmptyState
+                    icon={ListChecks}
+                    title="Sin indicadores odontológicos"
+                    description="Complete primero el examen físico general."
+                  />
+                </CardContent>
+              </Card>
+            )
+          )}
+
           {ACTIVE_SPECIALTY === "odontologia" && activeSection === "odontograma" && (
-            <OdontogramEditor odontograma={odontograma} eventos={odontograma?.eventos ?? []} />
+            <div className="space-y-4">
+              <SpecialtyBanner meta={specialtyMeta} />
+              <OdontogramEditor odontograma={odontograma} eventos={odontograma?.eventos ?? []} />
+            </div>
+          )}
+
+          {ACTIVE_SPECIALTY === "odontologia" && activeSection === "diagnosticos_odonto" && (
+            <div className="space-y-4">
+              <SpecialtyBanner meta={specialtyMeta} />
+              <DiagnosticosSection diagnosticos={diagnosticos} historiaId={historia.id} />
+            </div>
+          )}
+
+          {ACTIVE_SPECIALTY === "odontologia" && activeSection === "conducta_odonto" && (
+            <div className="space-y-4">
+              <SpecialtyBanner meta={specialtyMeta} />
+              <ConductaCierreSection
+                historia={historia}
+                diagnosticos={diagnosticos}
+                checklistItems={checklistItems}
+                onUpdateHistoria={(id, data) => clinical.updateHistoria(id, data)}
+              />
+            </div>
           )}
 
           {/* Future: medicina sections would render here */}
@@ -677,6 +748,21 @@ export default function ClinicalWorkspace() {
 }
 
 /* ── Helper components ───────────────────────── */
+
+function SpecialtyBanner({ meta }: { meta: typeof specialtyMeta }) {
+  const Icon = meta.icon;
+  return (
+    <div className={cn(
+      "flex items-center gap-2 px-4 py-2 rounded-xl border",
+      meta.color, meta.borderColor
+    )}>
+      <Icon className={cn("h-4 w-4", meta.textColor)} />
+      <span className={cn("text-xs font-semibold", meta.textColor)}>
+        Sección específica de {meta.label}
+      </span>
+    </div>
+  );
+}
 
 function SectionCard({ title, icon: Icon, children }: { title: string; icon: typeof ClipboardList; children: React.ReactNode }) {
   return (
