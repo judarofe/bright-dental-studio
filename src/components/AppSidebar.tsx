@@ -13,8 +13,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
-import { canAccessModule, type AppModule } from "@/lib/permissions";
-import { hasSpecialty } from "@/lib/specialties";
+import type { AppModule } from "@/lib/permissions";
 import {
   Sidebar,
   SidebarContent,
@@ -33,7 +32,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   module: AppModule;
   requiresSpecialty?: string;
-  badge?: string; // small label like "Fase 1"
+  badge?: string;
 }
 
 /* ── Núcleo ─────────────────────────────────── */
@@ -53,8 +52,6 @@ const clinicalItems: NavItem[] = [
 /* ── Especialidades ─────────────────────────── */
 const specialtyItems: NavItem[] = [
   { title: "Odontología", url: "/specialty/odontologia", icon: HeartPulse, module: "clinical", requiresSpecialty: "odontologia", badge: "Activo" },
-  // Future: { title: "Medicina General", url: "/specialty/medicina", icon: Stethoscope, module: "clinical", requiresSpecialty: "medicina" },
-  // Future: { title: "Psicología", url: "/specialty/psicologia", icon: Brain, module: "clinical", requiresSpecialty: "psicologia" },
 ];
 
 /* ── Administración ─────────────────────────── */
@@ -73,13 +70,11 @@ function NavGroup({
   items: NavItem[];
   collapsed: boolean;
 }) {
-  const { profile, specialtyCodes } = useAuth();
+  const { canModule, canSpecialty } = useAuth();
 
   const filtered = items.filter((item) => {
-    if (!canAccessModule(profile?.role, item.module)) return false;
-    if (item.requiresSpecialty && profile?.role !== "admin") {
-      if (!specialtyCodes.includes(item.requiresSpecialty)) return false;
-    }
+    if (!canModule(item.module)) return false;
+    if (item.requiresSpecialty && !canSpecialty(item.requiresSpecialty)) return false;
     return true;
   });
 

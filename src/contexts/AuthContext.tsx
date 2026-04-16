@@ -1,7 +1,18 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
-import { isProfileComplete, type AppRole } from "@/lib/permissions";
+import {
+  isProfileComplete,
+  canAccessModule,
+  canAccessRoute,
+  canAccessSpecialty,
+  canPerformAction,
+  getAccessibleSpecialties,
+  type AppRole,
+  type AppModule,
+  type AppAction,
+  type AccessContext,
+} from "@/lib/permissions";
 import type { Specialty } from "@/lib/specialties";
 
 interface Profile {
@@ -22,6 +33,18 @@ interface AuthContextType {
   profileComplete: boolean;
   specialties: Specialty[];
   specialtyCodes: string[];
+  /** Unified access context for permission checks */
+  access: AccessContext;
+  /** Convenience: check module access (role-based) */
+  canModule: (module: AppModule) => boolean;
+  /** Convenience: check specialty access (role + specialty) */
+  canSpecialty: (code: string) => boolean;
+  /** Convenience: check action permission */
+  canAction: (action: AppAction) => boolean;
+  /** Convenience: check route access */
+  canRoute: (path: string) => boolean;
+  /** List of specialty codes the user can clinically access */
+  accessibleSpecialties: string[];
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -151,8 +174,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const profileComplete = isProfileComplete(profile);
   const specialtyCodes = specialties.map((s) => s.code);
 
+  const access: AccessContext = useMemo(
+    () => ({ role: profile?.role ?? null, specialtyCodes }),
+    [profile?.role, specialtyCodes]
+  );
+
+  const canModule = useCallback((m: AppModule) => canAccessModule(access.role, m), [access.role]);
+  const canSpecialtyFn = useCallback((code: string) => canAccessSpecialty(access, code), [access]);
+  const canAction = useCallback((a: AppAction) => canPerformAction(access.role, a), [access.role]);
+  const canRoute = useCallback((path: string) => canAccessRoute(access.role, path, specialtyCodes), [access.role, specialtyCodes]);
+  const accessibleSpecs = useMemo(() => getAccessibleSpecialties(access), [access]);
+
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, profileComplete, specialties, specialtyCodes, signIn, signUp, signOut, refreshProfile, forgotPassword }}>
+    <AuthContext.Provider value={{
+      user, session, profile, loading, profileComplete, specialties, specialtyCodes,
+      access,
+      canModule,
+      canSpecialty: canSpecialtyFn,
+      canAction,
+      canRoute,
+      accessibleSpecialties: accessibleSpecs,
+      signIn, signUp, signOut, refreshProfile, forgotPassword,
+    }}>
       {children}
     </AuthContext.Provider>
   );
