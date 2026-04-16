@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { NewCareDialog } from "@/components/clinical/NewCareDialog";
 import { useAppStore } from "@/data/StoreContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClinicalStatusBadge, ClinicalAlert, SectionHeader } from "@/components/clinical";
@@ -52,11 +53,14 @@ interface Props {
 }
 
 export function ClinicalHubTab({ patientId }: Props) {
-  const { clinical } = useAppStore();
+  const { clinical, patients } = useAppStore();
   const { accessibleSpecialties } = useAuth();
   const navigate = useNavigate();
 
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
+  const [newCareOpen, setNewCareOpen] = useState(false);
+
+  const patientName = patients.find((p) => p.id === patientId)?.name;
 
   const historia = clinical.getHistoriaByPatient(patientId);
   const diagnosticos = historia ? clinical.getDiagnosticosByHistoria(historia.id) : [];
@@ -96,7 +100,7 @@ export function ClinicalHubTab({ patientId }: Props) {
             <Button
               size="sm"
               className="rounded-xl gap-1.5 h-8 text-xs"
-              onClick={() => toast.info("Iniciar nueva atención — en desarrollo")}
+              onClick={() => setNewCareOpen(true)}
             >
               <Plus className="h-3.5 w-3.5" /> Nueva atención
             </Button>
