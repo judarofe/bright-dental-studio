@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import { useAppStore } from "@/data/StoreContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import {
   AlertTriangle,
   Clock,
   FileText,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -178,8 +180,13 @@ export default function ClinicalHistory() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">Historias Clínicas</h1>
-          <p className="page-subtitle">Gestión de historias clínicas por paciente y especialidad</p>
+          <div className="flex items-center gap-2">
+            <h1 className="page-title">Atención Clínica</h1>
+            <Badge variant="outline" className="gap-1 text-[10px] h-5 rounded-full border-primary/30 text-primary">
+              <Activity className="h-3 w-3" /> Odontología
+            </Badge>
+          </div>
+          <p className="page-subtitle">Historias clínicas y atención por especialidad</p>
         </div>
       </div>
 

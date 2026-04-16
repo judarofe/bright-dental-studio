@@ -160,11 +160,19 @@ export default function ClinicalWorkspace() {
 
   return (
     <div className="page-container max-w-5xl space-y-4">
-      {/* Top bar — back + persistent actions */}
+      {/* Breadcrumb + persistent actions */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <Button variant="ghost" size="sm" onClick={() => navigate(`/patients/${patientId}`)} className="gap-1.5 text-muted-foreground -ml-2">
-          <ArrowLeft className="h-4 w-4" /> {patient.name}
-        </Button>
+        <div className="flex items-center gap-1.5 text-sm">
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/patients/${patientId}`)} className="gap-1.5 text-muted-foreground -ml-2 h-7 px-2">
+            <ArrowLeft className="h-3.5 w-3.5" /> {patient.name}
+          </Button>
+          <span className="text-muted-foreground/40">/</span>
+          <span className="text-xs text-muted-foreground">Atención Clínica</span>
+          <span className="text-muted-foreground/40">/</span>
+          <Badge variant="outline" className="gap-1 text-[10px] h-5 rounded-full border-primary/30 text-primary">
+            <Activity className="h-3 w-3" /> Odontología
+          </Badge>
+        </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" className="rounded-xl gap-1.5 h-8 text-xs" onClick={handleSaveDraft}>
             <Save className="h-3.5 w-3.5" /> Guardar borrador
@@ -197,10 +205,10 @@ export default function ClinicalWorkspace() {
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-lg font-bold text-foreground">{patient.name}</h1>
                 {badgeStatus && <ClinicalStatusBadge status={badgeStatus} variant="pill" />}
-                <Badge variant="outline" className="gap-1 text-[10px] h-5 rounded-full border-primary/30 text-primary">
-                  <Activity className="h-3 w-3" /> Odontología
-                </Badge>
               </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Historia clínica · Especialidad: Odontología
+              </p>
               <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
                 <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {patient.phone}</span>
                 {patient.cedula && <span>Cédula: {patient.cedula}</span>}
@@ -237,7 +245,7 @@ export default function ClinicalWorkspace() {
           <CardContent className="p-2">
             <nav className="space-y-0.5">
               {/* Base clinical sections */}
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-2 pb-1 font-semibold">Historia clínica base</p>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-2 pb-1 font-semibold">Núcleo clínico</p>
               {SECTIONS.filter(s => s.group === "base").map((s) => (
                 <button
                   key={s.id}
