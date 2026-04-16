@@ -94,9 +94,76 @@ export default function ClinicalHistory() {
     const existing = store.clinical.getHistoriaByPatient(patientId);
     if (existing) {
       navigate(`/patients/${patientId}/historia/${existing.id}`);
-    } else {
-      toast.info("Funcionalidad próxima", { description: "Crear nueva historia clínica" });
+      return;
     }
+
+    const patient = store.patients.find((p) => p.id === patientId);
+    const today = new Date().toISOString().split("T")[0];
+
+    const newHistoria = store.clinical.addHistoria({
+      patientId,
+      estado: "borrador",
+      creadoEn: today,
+      actualizadoEn: today,
+      detalle: {
+        motivoConsulta: "",
+        anamnesis: "",
+        antecedentesMedicos: "",
+        antecedentesOdontologicos: "",
+        antecedentesFamiliares: "",
+        habitos: "",
+        revisionSistemas: "",
+        examenFisico: {
+          general: "",
+          especifico: "",
+          signosVitales: {
+            presionArterial: "",
+            frecuenciaCardiaca: 0,
+            frecuenciaRespiratoria: 0,
+            temperatura: 0,
+            peso: 0,
+            talla: 0,
+            imc: 0,
+          },
+          indicadoresOdontologicos: {
+            indiceOLeary: 0,
+            fluorosis: "normal",
+            dientesExaminados: 0,
+            superficiesExaminadas: 0,
+            superficiesMarcadas: 0,
+            copC: 0,
+            copO: 0,
+            copP: 0,
+            copTotal: 0,
+            aptoCop: false,
+          },
+        },
+        exploracionClinica: "",
+        planTratamiento: "",
+      },
+      clasificacion: {
+        asa: "ASA_I",
+        alergias: [],
+        enfermedadesCronicas: [],
+        medicamentosActuales: [],
+      },
+      indicadores: {
+        piezasTratadas: 0,
+        procedimientosPendientes: 0,
+        ultimaVisita: today,
+        proximaCita: "",
+        riesgoGeneral: "bajo",
+      },
+      odontogramaId: "",
+      diagnosticos: [],
+      notas: [],
+      versiones: [],
+    });
+
+    toast.success("Historia clínica creada", {
+      description: `${patient?.name || "Paciente"} — Borrador listo para completar`,
+    });
+    navigate(`/patients/${patientId}/historia/${newHistoria.id}`);
   };
 
   const handleNewNote = (patientId: string) => {
