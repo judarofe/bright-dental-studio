@@ -37,6 +37,8 @@ interface AuthContextType {
   profileComplete: boolean;
   specialties: Specialty[];
   specialtyCodes: string[];
+  /** Semantic role category (administrativo, clinico, operativo) */
+  roleCategory: RoleCategory | null;
   /** Unified access context for permission checks */
   access: AccessContext;
   /** Convenience: check module access (role-based) */
@@ -45,6 +47,8 @@ interface AuthContextType {
   canSpecialty: (code: string) => boolean;
   /** Convenience: check action permission */
   canAction: (action: AppAction) => boolean;
+  /** Check if user's role belongs to a category */
+  isCategory: (cat: RoleCategory) => boolean;
   /** Convenience: check route access */
   canRoute: (path: string) => boolean;
   /** List of specialty codes the user can clinically access */
