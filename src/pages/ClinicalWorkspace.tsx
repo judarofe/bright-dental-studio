@@ -54,18 +54,27 @@ import {
 
 type SectionId = "motivo" | "antecedentes" | "examen" | "exploracion" | "diagnosticos" | "odontograma" | "plan" | "prescripciones" | "notas" | "cierre" | "revision";
 
-const SECTIONS: { id: SectionId; label: string; icon: typeof ClipboardList }[] = [
-  { id: "motivo", label: "Motivo y anamnesis", icon: ClipboardList },
-  { id: "antecedentes", label: "Antecedentes", icon: FileText },
-  { id: "examen", label: "Examen físico", icon: Activity },
-  { id: "exploracion", label: "Exploración", icon: Stethoscope },
-  { id: "diagnosticos", label: "Diagnósticos", icon: AlertTriangle },
-  { id: "odontograma", label: "Odontograma", icon: Activity },
-  { id: "plan", label: "Plan de tratamiento", icon: CheckCircle2 },
-  { id: "prescripciones", label: "Prescripciones", icon: Pill },
-  { id: "notas", label: "Notas", icon: StickyNote },
-  { id: "cierre", label: "Cierre y conducta", icon: Lock },
-  { id: "revision", label: "Revisión final", icon: ClipboardCheck },
+interface SectionDef {
+  id: SectionId;
+  label: string;
+  icon: typeof ClipboardList;
+  group: "base" | "odontologia";
+}
+
+const SECTIONS: SectionDef[] = [
+  // Base clinical sections — shared across all specialties
+  { id: "motivo", label: "Motivo y anamnesis", icon: ClipboardList, group: "base" },
+  { id: "antecedentes", label: "Antecedentes", icon: FileText, group: "base" },
+  { id: "examen", label: "Examen físico", icon: Activity, group: "base" },
+  { id: "exploracion", label: "Exploración", icon: Stethoscope, group: "base" },
+  { id: "diagnosticos", label: "Diagnósticos", icon: AlertTriangle, group: "base" },
+  { id: "plan", label: "Plan de tratamiento", icon: CheckCircle2, group: "base" },
+  { id: "prescripciones", label: "Prescripciones", icon: Pill, group: "base" },
+  { id: "notas", label: "Notas", icon: StickyNote, group: "base" },
+  { id: "cierre", label: "Cierre y conducta", icon: Lock, group: "base" },
+  { id: "revision", label: "Revisión final", icon: ClipboardCheck, group: "base" },
+  // Odontología — specialty-specific
+  { id: "odontograma", label: "Odontograma", icon: Activity, group: "odontologia" },
 ];
 
 export default function ClinicalWorkspace() {
