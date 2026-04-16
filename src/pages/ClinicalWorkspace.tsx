@@ -245,7 +245,7 @@ export default function ClinicalWorkspace() {
           <CardContent className="p-2">
             <nav className="space-y-0.5">
               {/* Base clinical sections */}
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-2 pb-1 font-semibold">Historia clínica base</p>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-2 pb-1 font-semibold">Núcleo clínico</p>
               {SECTIONS.filter(s => s.group === "base").map((s) => (
                 <button
                   key={s.id}
