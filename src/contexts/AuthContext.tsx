@@ -201,7 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       roleCategory, access,
       canModule,
       canSpecialty: canSpecialtyFn,
-      canAction,
+      canAction, isCategory,
       canRoute,
       accessibleSpecialties: accessibleSpecs,
       signIn, signUp, signOut, refreshProfile, forgotPassword,
