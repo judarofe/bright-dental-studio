@@ -63,6 +63,7 @@ const App = () => (
                         <Route path="/patients/:id" element={<PatientDetail />} />
                         <Route path="/payments" element={<Payments />} />
                         <Route path="/clinical" element={<ClinicalHistory />} />
+                        <Route path="/specialty/odontologia" element={<Navigate to="/clinical" replace />} />
                         <Route path="/notes" element={<QuickNotes />} />
                         <Route path="/history" element={<History />} />
                         <Route path="/reports" element={<Reports />} />
