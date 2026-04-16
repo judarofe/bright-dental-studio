@@ -68,7 +68,46 @@ export default function Dashboard() {
         <StatCard title="Ingresos" value={`€${todayRevenue}`} icon={DollarSign} accent="success" />
       </div>
 
-      {/* Next appointment highlight */}
+      {/* Specialty overview */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Stethoscope className="h-3.5 w-3.5 text-muted-foreground" />
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Especialidades</p>
+            </div>
+            {specialties.length > 0 && (
+              <Badge variant="outline" className="text-[9px] h-4 px-1.5 rounded-full border-primary/30 text-primary">
+                {specialties.length} habilitada{specialties.length !== 1 ? "s" : ""}
+              </Badge>
+            )}
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {ALL_SPEC_CODES.map((code) => {
+              const meta = SPECIALTY_META[code];
+              const Icon = meta.icon;
+              const userHas = specialties.some((s) => s.code === code);
+              return (
+                <div
+                  key={code}
+                  className={cn(
+                    "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                    meta.active && userHas
+                      ? cn(meta.color, meta.textColor)
+                      : "bg-muted/30 text-muted-foreground/40"
+                  )}
+                >
+                  <Icon className="h-3 w-3" />
+                  {meta.label}
+                  {!meta.active && <span className="text-[8px] opacity-60">Próx.</span>}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+
       {pending.length > 0 && (
         <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent shadow-sm">
           <CardContent className="p-5 flex items-center gap-4">
