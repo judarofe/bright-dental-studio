@@ -7,11 +7,15 @@ import {
   canAccessRoute,
   canAccessSpecialty,
   canPerformAction,
+  canEffectivelyAccessModule,
   getAccessibleSpecialties,
+  getRoleCategory,
+  isRoleCategory,
   type AppRole,
   type AppModule,
   type AppAction,
   type AccessContext,
+  type RoleCategory,
 } from "@/lib/permissions";
 import type { Specialty } from "@/lib/specialties";
 
