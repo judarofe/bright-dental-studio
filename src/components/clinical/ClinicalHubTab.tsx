@@ -28,23 +28,11 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-/* ── Specialty config ──────────────────────────── */
+import { SPECIALTY_META, type SpecialtyCode } from "@/lib/clinicalSections";
 
-interface SpecialtyConfig {
-  code: string;
-  label: string;
-  icon: React.ElementType;
-  color: string;       // tailwind bg class token
-  textColor: string;   // tailwind text class token
-  active: boolean;
-}
+/* ── Specialty config from registry ────────────── */
 
-const ALL_SPECIALTIES: SpecialtyConfig[] = [
-  { code: "odontologia", label: "Odontología", icon: Activity, color: "bg-primary/10", textColor: "text-primary", active: true },
-  { code: "medicina", label: "Medicina General", icon: Heart, color: "bg-rose-500/10", textColor: "text-rose-500", active: false },
-  { code: "psicologia", label: "Psicología", icon: Brain, color: "bg-violet-500/10", textColor: "text-violet-500", active: false },
-  { code: "enfermeria", label: "Enfermería", icon: Syringe, color: "bg-emerald-500/10", textColor: "text-emerald-500", active: false },
-];
+const ALL_SPECIALTIES = Object.values(SPECIALTY_META);
 
 /* ── Main component ────────────────────────────── */
 

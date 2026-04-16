@@ -9,6 +9,8 @@ import { OdontogramEditor } from "@/components/clinical/OdontogramEditor";
 import { DiagnosticosSection } from "@/components/clinical/DiagnosticosSection";
 import { ConductaCierreSection } from "@/components/clinical/ConductaCierreSection";
 import { RevisionFinalSection } from "@/components/clinical/RevisionFinalSection";
+import { OdontologicIndicators, VitalsSection } from "@/components/clinical/specialties/OdontologySections";
+import { BASE_SECTIONS, SPECIALTY_SECTIONS, SPECIALTY_META, type SpecialtyCode, type ClinicalSectionDef } from "@/lib/clinicalSections";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -47,36 +49,11 @@ import {
   Clipboard,
   FileQuestion,
   Users,
-  Thermometer,
-  Weight,
-  Ruler,
-  Droplets,
 } from "lucide-react";
 
-type SectionId = "motivo" | "antecedentes" | "examen" | "exploracion" | "diagnosticos" | "odontograma" | "plan" | "prescripciones" | "notas" | "cierre" | "revision";
-
-interface SectionDef {
-  id: SectionId;
-  label: string;
-  icon: typeof ClipboardList;
-  group: "base" | "odontologia";
-}
-
-const SECTIONS: SectionDef[] = [
-  // Base clinical sections — shared across all specialties
-  { id: "motivo", label: "Motivo y anamnesis", icon: ClipboardList, group: "base" },
-  { id: "antecedentes", label: "Antecedentes", icon: FileText, group: "base" },
-  { id: "examen", label: "Examen físico", icon: Activity, group: "base" },
-  { id: "exploracion", label: "Exploración", icon: Stethoscope, group: "base" },
-  { id: "diagnosticos", label: "Diagnósticos", icon: AlertTriangle, group: "base" },
-  { id: "plan", label: "Plan de tratamiento", icon: CheckCircle2, group: "base" },
-  { id: "prescripciones", label: "Prescripciones", icon: Pill, group: "base" },
-  { id: "notas", label: "Notas", icon: StickyNote, group: "base" },
-  { id: "cierre", label: "Cierre y conducta", icon: Lock, group: "base" },
-  { id: "revision", label: "Revisión final", icon: ClipboardCheck, group: "base" },
-  // Odontología — specialty-specific
-  { id: "odontograma", label: "Odontograma", icon: Activity, group: "odontologia" },
-];
+/* ── Current specialty (phase 1: always odontología) ── */
+const ACTIVE_SPECIALTY: SpecialtyCode = "odontologia";
+const specialtyMeta = SPECIALTY_META[ACTIVE_SPECIALTY];
 
 export default function ClinicalWorkspace() {
   const { patientId, historiaId } = useParams<{ patientId: string; historiaId: string }>();
@@ -91,14 +68,19 @@ export default function ClinicalWorkspace() {
   const odontograma = historia ? clinical.getOdontograma(historia.odontogramaId) : null;
   const versiones = historia ? clinical.getVersionesByHistoria(historia.id) : [];
 
-  const [activeSection, setActiveSection] = useState<SectionId>("motivo");
+  const [activeSection, setActiveSection] = useState("motivo");
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
-  // Map estado → badge status
+  /* ── Derived ── */
+  const baseSections = BASE_SECTIONS;
+  const specialtySections = SPECIALTY_SECTIONS[ACTIVE_SPECIALTY] ?? [];
+  const allSections = useMemo(() => [...baseSections, ...specialtySections], []);
+
   const badgeStatus = historia
     ? ({ borrador: "draft", en_progreso: "in_progress", cerrada: "closed", anulada: "voided" } as const)[historia.estado]
     : undefined;
 
+  /* ── Not-found state ── */
   if (!patient || !historia) {
     return (
       <div className="page-container max-w-4xl">
@@ -122,7 +104,9 @@ export default function ClinicalWorkspace() {
   }
 
   const initials = patient.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  const isLocked = historia.estado === "cerrada" || historia.estado === "anulada";
 
+  /* ── Handlers ── */
   const handleSaveDraft = () => {
     clinical.updateHistoria(historia.id, { estado: "borrador" });
     toast.success("Borrador guardado");
@@ -138,14 +122,12 @@ export default function ClinicalWorkspace() {
     setShowCloseConfirm(false);
   };
 
-  const isLocked = historia.estado === "cerrada" || historia.estado === "anulada";
-
   const handlePrint = () => {
     toast.info("Preparando impresión…");
     setTimeout(() => window.print(), 300);
   };
 
-  // Checklist items derived from historia
+  /* ── Checklist ── */
   const checklistItems = [
     { label: "Motivo de consulta registrado", completed: !!historia.detalle.motivoConsulta, required: true as const },
     { label: "Anamnesis completada", completed: !!historia.detalle.anamnesis, required: true as const },
@@ -158,9 +140,28 @@ export default function ClinicalWorkspace() {
     { label: "Odontograma actualizado", completed: !!odontograma && odontograma.piezas.some((p) => p.condicion !== "sano") },
   ];
 
+  /* ── Section nav item renderer ── */
+  const renderNavItem = (s: ClinicalSectionDef) => (
+    <button
+      key={s.id}
+      onClick={() => setActiveSection(s.id)}
+      className={cn(
+        "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left",
+        activeSection === s.id
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+      )}
+    >
+      <s.icon className="h-3.5 w-3.5 shrink-0" />
+      {s.label}
+    </button>
+  );
+
+  const SpecIcon = specialtyMeta.icon;
+
   return (
     <div className="page-container max-w-5xl space-y-4">
-      {/* Breadcrumb + persistent actions */}
+      {/* ── Breadcrumb + actions ── */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-1.5 text-sm">
           <Button variant="ghost" size="sm" onClick={() => navigate(`/patients/${patientId}`)} className="gap-1.5 text-muted-foreground -ml-2 h-7 px-2">
@@ -169,8 +170,8 @@ export default function ClinicalWorkspace() {
           <span className="text-muted-foreground/40">/</span>
           <span className="text-xs text-muted-foreground">Atención Clínica</span>
           <span className="text-muted-foreground/40">/</span>
-          <Badge variant="outline" className="gap-1 text-[10px] h-5 rounded-full border-primary/30 text-primary">
-            <Activity className="h-3 w-3" /> Odontología
+          <Badge variant="outline" className={cn("gap-1 text-[10px] h-5 rounded-full", specialtyMeta.borderColor, specialtyMeta.textColor)}>
+            <SpecIcon className="h-3 w-3" /> {specialtyMeta.label}
           </Badge>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -194,7 +195,7 @@ export default function ClinicalWorkspace() {
         </div>
       </div>
 
-      {/* Patient context header */}
+      {/* ── Patient context header ── */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-5">
           <div className="flex items-center gap-4 flex-wrap">
@@ -207,7 +208,7 @@ export default function ClinicalWorkspace() {
                 {badgeStatus && <ClinicalStatusBadge status={badgeStatus} variant="pill" />}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Historia clínica · Especialidad: Odontología
+                Historia clínica · Especialidad: {specialtyMeta.label}
               </p>
               <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
                 <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {patient.phone}</span>
@@ -220,7 +221,6 @@ export default function ClinicalWorkspace() {
             </div>
           </div>
 
-          {/* Alerts inline */}
           {historia.clasificacion.alergias.length > 0 && (
             <div className="mt-3">
               <ClinicalAlert type="risk" title="Alergias" description={historia.clasificacion.alergias.join(", ")} />
@@ -229,7 +229,7 @@ export default function ClinicalWorkspace() {
         </CardContent>
       </Card>
 
-      {/* Locked banner */}
+      {/* ── Locked banner ── */}
       {isLocked && (
         <ClinicalAlert
           type={historia.estado === "anulada" ? "error" : "admin"}
@@ -238,50 +238,28 @@ export default function ClinicalWorkspace() {
         />
       )}
 
-      {/* Main layout: sidebar nav + content */}
+      {/* ── Main layout: sidebar nav + content ── */}
       <div className="flex gap-4 items-start">
-        {/* Section nav */}
+        {/* Desktop section nav */}
         <Card className="border-0 shadow-sm shrink-0 hidden md:block w-52">
           <CardContent className="p-2">
             <nav className="space-y-0.5">
-              {/* Base clinical sections */}
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-2 pb-1 font-semibold">Núcleo clínico</p>
-              {SECTIONS.filter(s => s.group === "base").map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => setActiveSection(s.id)}
-                  className={cn(
-                    "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left",
-                    activeSection === s.id
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                  )}
-                >
-                  <s.icon className="h-3.5 w-3.5 shrink-0" />
-                  {s.label}
-                </button>
-              ))}
-
-              {/* Specialty sections */}
-              <Separator className="my-2" />
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-1 pb-1 font-semibold flex items-center gap-1.5">
-                <Activity className="h-3 w-3" /> Odontología
+              {/* Core clinical sections */}
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-2 pb-1 font-semibold">
+                Núcleo clínico
               </p>
-              {SECTIONS.filter(s => s.group === "odontologia").map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => setActiveSection(s.id)}
-                  className={cn(
-                    "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left",
-                    activeSection === s.id
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                  )}
-                >
-                  <s.icon className="h-3.5 w-3.5 shrink-0" />
-                  {s.label}
-                </button>
-              ))}
+              {baseSections.map(renderNavItem)}
+
+              {/* Specialty-specific sections */}
+              {specialtySections.length > 0 && (
+                <>
+                  <Separator className="my-2" />
+                  <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 px-3 pt-1 pb-1 font-semibold flex items-center gap-1.5">
+                    <SpecIcon className="h-3 w-3" /> {specialtyMeta.label}
+                  </p>
+                  {specialtySections.map(renderNavItem)}
+                </>
+              )}
             </nav>
           </CardContent>
         </Card>
@@ -289,7 +267,7 @@ export default function ClinicalWorkspace() {
         {/* Mobile section selector */}
         <div className="md:hidden w-full mb-2">
           <div className="flex overflow-x-auto gap-1.5 pb-2 -mx-1 px-1">
-            {SECTIONS.filter(s => s.group === "base").map((s) => (
+            {baseSections.map((s) => (
               <button
                 key={s.id}
                 onClick={() => setActiveSection(s.id)}
@@ -304,27 +282,33 @@ export default function ClinicalWorkspace() {
                 {s.label}
               </button>
             ))}
-            <Separator orientation="vertical" className="h-6 self-center mx-1" />
-            {SECTIONS.filter(s => s.group === "odontologia").map((s) => (
-              <button
-                key={s.id}
-                onClick={() => setActiveSection(s.id)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors",
-                  activeSection === s.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-primary/10 text-primary"
-                )}
-              >
-                <s.icon className="h-3 w-3" />
-                {s.label}
-              </button>
-            ))}
+            {specialtySections.length > 0 && (
+              <>
+                <Separator orientation="vertical" className="h-6 self-center mx-1" />
+                {specialtySections.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setActiveSection(s.id)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors",
+                      activeSection === s.id
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-primary/10 text-primary"
+                    )}
+                  >
+                    <s.icon className="h-3 w-3" />
+                    {s.label}
+                  </button>
+                ))}
+              </>
+            )}
           </div>
         </div>
 
-        {/* Content area */}
+        {/* ── Content area ── */}
         <div className="flex-1 min-w-0 space-y-4">
+          {/* ────────── BASE SECTIONS ────────── */}
+
           {activeSection === "motivo" && (
             <div className="space-y-4">
               <ClinicalTextField
@@ -358,7 +342,6 @@ export default function ClinicalWorkspace() {
 
           {activeSection === "antecedentes" && (
             <div className="space-y-4">
-              {/* Clasificación clínica — always visible */}
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-5 space-y-3">
                   <SectionHeader title="Clasificación clínica" size="sm" icon={ListChecks} />
@@ -448,7 +431,41 @@ export default function ClinicalWorkspace() {
 
           {activeSection === "examen" && (
             historia.detalle.examenFisico ? (
-              <ExamenFisicoSection examen={historia.detalle.examenFisico} />
+              <div className="space-y-4">
+                <ClinicalTextField
+                  title="Examen físico general"
+                  icon={User}
+                  value={historia.detalle.examenFisico.general}
+                  placeholder="Estado general, aspecto, marcha, orientación, piel, mucosas, ganglios…"
+                  rows={3}
+                  required
+                  templates={[
+                    "Paciente en buen estado general, orientado en tiempo, lugar y persona. Piel y mucosas normocoloreadas e hidratadas. Sin adenopatías cervicales palpables. Marcha normal.",
+                    "Paciente en regular estado general. Se observa [hallazgo]. Adenopatías [palpables/no palpables] en [región].",
+                  ]}
+                />
+
+                <ClinicalTextField
+                  title="Examen físico específico (cabeza y cuello)"
+                  icon={Stethoscope}
+                  value={historia.detalle.examenFisico.especifico}
+                  placeholder="ATM, apertura bucal, mucosa oral, piso de boca, lengua, paladar, orofaringe…"
+                  rows={4}
+                  required
+                  templates={[
+                    "ATM sin chasquidos ni crepitaciones. Apertura bucal adecuada (>40mm). Mucosa oral sin lesiones. Encías rosadas y firmes. Piso de boca y lengua sin alteraciones. Paladar duro y blando normales. Orofaringe sin hallazgos.",
+                    "ATM con [chasquido/crepitación] en [lado]. Apertura bucal [limitada/normal] ([mm]mm). Mucosa [hallazgo]. Encías [hallazgo]. [Otros hallazgos].",
+                  ]}
+                />
+
+                {/* Shared vitals */}
+                <VitalsSection examen={historia.detalle.examenFisico} />
+
+                {/* Specialty-specific: odontologic indicators */}
+                {ACTIVE_SPECIALTY === "odontologia" && (
+                  <OdontologicIndicators examen={historia.detalle.examenFisico} />
+                )}
+              </div>
             ) : (
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-0">
@@ -478,10 +495,6 @@ export default function ClinicalWorkspace() {
 
           {activeSection === "diagnosticos" && (
             <DiagnosticosSection diagnosticos={diagnosticos} historiaId={historia.id} />
-          )}
-
-          {activeSection === "odontograma" && (
-            <OdontogramEditor odontograma={odontograma} eventos={odontograma?.eventos ?? []} />
           )}
 
           {activeSection === "plan" && (
@@ -605,20 +618,28 @@ export default function ClinicalWorkspace() {
               odontograma={odontograma}
               notas={notas}
               checklistItems={checklistItems}
-              onNavigateSection={(s) => setActiveSection(s as SectionId)}
+              onNavigateSection={(s) => setActiveSection(s)}
               onClose={handleClose}
               onSaveDraft={handleSaveDraft}
               onPrint={handlePrint}
             />
           )}
 
-          {/* Validation checklist — always visible */}
+          {/* ────────── SPECIALTY SECTIONS ────────── */}
+          {/* Odontología-specific */}
+          {ACTIVE_SPECIALTY === "odontologia" && activeSection === "odontograma" && (
+            <OdontogramEditor odontograma={odontograma} eventos={odontograma?.eventos ?? []} />
+          )}
+
+          {/* Future: medicina sections would render here */}
+          {/* Future: psicología sections would render here */}
+
+          {/* ────────── ALWAYS-VISIBLE ────────── */}
           <ValidationChecklist
             title="Estado de completitud"
             items={checklistItems}
           />
 
-          {/* Version history */}
           {versiones.length > 0 && (
             <Card className="border-0 shadow-sm">
               <CardContent className="p-5 space-y-3">
@@ -735,7 +756,6 @@ function ClinicalTextField({ title, icon: Icon, value, placeholder, rows = 4, re
           )}
         </div>
 
-        {/* Templates panel */}
         {showTemplates && templates && (
           <div className="rounded-xl border border-dashed border-primary/20 bg-primary/[0.02] p-3 space-y-2">
             <p className="text-[11px] font-medium text-muted-foreground">Seleccione una plantilla para autocompletar:</p>
@@ -782,234 +802,5 @@ function ClinicalTextField({ title, icon: Icon, value, placeholder, rows = 4, re
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-/* ── Vital sign card ─────────────────────────── */
-
-function VitalCard({ label, value, unit, icon: Icon, status }: {
-  label: string;
-  value: string | number;
-  unit: string;
-  icon: typeof Heart;
-  status?: "normal" | "warning" | "danger";
-}) {
-  const statusColor = status === "danger"
-    ? "border-destructive/30 bg-destructive/5"
-    : status === "warning"
-    ? "border-warning/30 bg-warning/5"
-    : "border-border/50 bg-muted/20";
-
-  const valueColor = status === "danger"
-    ? "text-destructive"
-    : status === "warning"
-    ? "text-warning"
-    : "text-foreground";
-
-  return (
-    <div className={cn("rounded-xl border p-3 space-y-1.5 transition-colors", statusColor)}>
-      <div className="flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="text-[11px] text-muted-foreground font-medium">{label}</span>
-      </div>
-      <div className="flex items-baseline gap-1">
-        <span className={cn("text-lg font-bold tabular-nums tracking-tight", valueColor)}>{value}</span>
-        <span className="text-[10px] text-muted-foreground">{unit}</span>
-      </div>
-    </div>
-  );
-}
-
-/* ── Odontologic indicator row ───────────────── */
-
-function IndicatorRow({ label, value, total, unit, highlight }: {
-  label: string;
-  value: number;
-  total?: number;
-  unit?: string;
-  highlight?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between py-2 border-b border-border/40 last:border-0">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <div className="flex items-baseline gap-1">
-        <span className={cn(
-          "text-sm font-semibold tabular-nums",
-          highlight ? "text-primary" : "text-foreground"
-        )}>
-          {value}
-        </span>
-        {total !== undefined && (
-          <span className="text-[10px] text-muted-foreground">/ {total}</span>
-        )}
-        {unit && <span className="text-[10px] text-muted-foreground">{unit}</span>}
-      </div>
-    </div>
-  );
-}
-
-/* ── Examen Físico section ───────────────────── */
-
-function ExamenFisicoSection({ examen }: { examen: ExamenFisico }) {
-  const sv = examen.signosVitales;
-  const ind = examen.indicadoresOdontologicos;
-
-  const fluorosisLabels: Record<string, string> = {
-    normal: "Normal",
-    cuestionable: "Cuestionable",
-    muy_leve: "Muy leve",
-    leve: "Leve",
-    moderada: "Moderada",
-    severa: "Severa",
-  };
-
-  const olearyStatus = ind.indiceOLeary > 40 ? "danger" : ind.indiceOLeary > 20 ? "warning" : "normal";
-
-  // Parse BP to check if abnormal
-  const [sys, dia] = sv.presionArterial.split("/").map(Number);
-  const bpStatus = sys > 140 || dia > 90 ? "danger" : sys > 130 || dia > 85 ? "warning" : "normal";
-  const hrStatus = sv.frecuenciaCardiaca > 100 || sv.frecuenciaCardiaca < 50 ? "warning" : "normal";
-
-  return (
-    <div className="space-y-4">
-      {/* Examen físico general */}
-      <ClinicalTextField
-        title="Examen físico general"
-        icon={User}
-        value={examen.general}
-        placeholder="Estado general, aspecto, marcha, orientación, piel, mucosas, ganglios…"
-        rows={3}
-        required
-        templates={[
-          "Paciente en buen estado general, orientado en tiempo, lugar y persona. Piel y mucosas normocoloreadas e hidratadas. Sin adenopatías cervicales palpables. Marcha normal.",
-          "Paciente en regular estado general. Se observa [hallazgo]. Adenopatías [palpables/no palpables] en [región].",
-        ]}
-      />
-
-      {/* Examen físico específico */}
-      <ClinicalTextField
-        title="Examen físico específico (cabeza y cuello)"
-        icon={Stethoscope}
-        value={examen.especifico}
-        placeholder="ATM, apertura bucal, mucosa oral, piso de boca, lengua, paladar, orofaringe…"
-        rows={4}
-        required
-        templates={[
-          "ATM sin chasquidos ni crepitaciones. Apertura bucal adecuada (>40mm). Mucosa oral sin lesiones. Encías rosadas y firmes. Piso de boca y lengua sin alteraciones. Paladar duro y blando normales. Orofaringe sin hallazgos.",
-          "ATM con [chasquido/crepitación] en [lado]. Apertura bucal [limitada/normal] ([mm]mm). Mucosa [hallazgo]. Encías [hallazgo]. [Otros hallazgos].",
-        ]}
-      />
-
-      {/* Signos Vitales */}
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-5 space-y-4">
-          <SectionHeader title="Signos vitales" icon={Heart} size="sm" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <VitalCard label="Presión arterial" value={sv.presionArterial} unit="mmHg" icon={Heart} status={bpStatus} />
-            <VitalCard label="Frec. cardiaca" value={sv.frecuenciaCardiaca} unit="lpm" icon={Activity} status={hrStatus} />
-            <VitalCard label="Frec. respiratoria" value={sv.frecuenciaRespiratoria} unit="rpm" icon={Droplets} />
-            <VitalCard label="Temperatura" value={sv.temperatura} unit="°C" icon={Thermometer} />
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <VitalCard label="Peso" value={sv.peso} unit="kg" icon={Weight} />
-            <VitalCard label="Talla" value={sv.talla} unit="cm" icon={Ruler} />
-            <VitalCard label="IMC" value={sv.imc} unit="kg/m²" icon={Activity}
-              status={sv.imc > 30 ? "danger" : sv.imc > 25 ? "warning" : "normal"} />
-            {sv.saturacionO2 !== undefined && (
-              <VitalCard label="SpO₂" value={sv.saturacionO2} unit="%" icon={Droplets}
-                status={sv.saturacionO2 < 90 ? "danger" : sv.saturacionO2 < 95 ? "warning" : "normal"} />
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Indicadores Odontológicos — specialty-specific */}
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <SectionHeader title="Indicadores odontológicos" icon={ListChecks} size="sm" />
-            <Badge variant="outline" className="text-[9px] h-4 rounded-full border-primary/30 text-primary">Odontología</Badge>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Índices de higiene */}
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Índices de higiene</p>
-              <div className="rounded-xl border border-border/50 p-3 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Índice de O'Leary</span>
-                  <Badge variant="outline" className={cn(
-                    "text-[10px] h-5 px-1.5 font-semibold border-0",
-                    olearyStatus === "danger" ? "bg-destructive/10 text-destructive" :
-                    olearyStatus === "warning" ? "bg-warning/10 text-warning" :
-                    "bg-success/10 text-success"
-                  )}>
-                    {ind.indiceOLeary}%
-                  </Badge>
-                </div>
-                <div className="h-2 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full rounded-full transition-all",
-                      olearyStatus === "danger" ? "bg-destructive" :
-                      olearyStatus === "warning" ? "bg-warning" :
-                      "bg-success"
-                    )}
-                    style={{ width: `${Math.min(ind.indiceOLeary, 100)}%` }}
-                  />
-                </div>
-                <p className="text-[10px] text-muted-foreground">
-                  {olearyStatus === "normal" ? "Higiene aceptable" : olearyStatus === "warning" ? "Requiere refuerzo de higiene" : "Higiene deficiente — intervención necesaria"}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-border/50 p-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Fluorosis</span>
-                  <Badge variant="outline" className={cn(
-                    "text-[10px] h-5 px-1.5 font-medium border-0",
-                    ind.fluorosis === "severa" || ind.fluorosis === "moderada" ? "bg-destructive/10 text-destructive" :
-                    ind.fluorosis === "leve" || ind.fluorosis === "muy_leve" ? "bg-warning/10 text-warning" :
-                    "bg-muted text-muted-foreground"
-                  )}>
-                    {fluorosisLabels[ind.fluorosis]}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
-            {/* COP e indicadores cuantitativos */}
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">COP-D y cuantitativos</p>
-              <div className="rounded-xl border border-border/50 p-3 space-y-0.5">
-                <IndicatorRow label="Dientes examinados" value={ind.dientesExaminados} />
-                <IndicatorRow label="Superficies examinadas" value={ind.superficiesExaminadas} />
-                <IndicatorRow label="Superficies marcadas" value={ind.superficiesMarcadas} total={ind.superficiesExaminadas} />
-                <Separator className="my-1.5" />
-                <IndicatorRow label="Cariados (C)" value={ind.copC} highlight />
-                <IndicatorRow label="Obturados (O)" value={ind.copO} />
-                <IndicatorRow label="Perdidos (P)" value={ind.copP} />
-                <div className="flex items-center justify-between py-2 border-t border-primary/20 mt-1">
-                  <span className="text-xs font-semibold text-foreground">COP Total</span>
-                  <span className="text-base font-bold text-primary tabular-nums">{ind.copTotal}</span>
-                </div>
-                {ind.copd !== undefined && (
-                  <IndicatorRow label="COP-D (deciduos)" value={ind.copd} />
-                )}
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-xs text-muted-foreground">Apto COP</span>
-                  <Badge variant="outline" className={cn(
-                    "text-[10px] h-5 px-2 font-semibold border-0",
-                    ind.aptoCop ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
-                  )}>
-                    {ind.aptoCop ? "Sí" : "No"}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
   );
 }

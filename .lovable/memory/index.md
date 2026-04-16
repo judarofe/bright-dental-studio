@@ -16,4 +16,5 @@ Multi-specialty platform: specialties table + user_specialties. Phase 1 = odonto
 - [Patient Management](mem://features/patient-management) — Centralized profiles with tabs, quick search, and auto-save
 - [Payments Module](mem://features/payments) — Tracking daily revenue and filtering paid appointments
 - [Multi-specialty Architecture](mem://features/multi-specialty) — Platform supports multiple specialties per user; odontología is phase 1
+- [Clinical Workspace](mem://features/clinical-workspace) — Modular workspace shell with specialty section registry and extracted components
 - [Future Roadmap](mem://project/future-roadmap) — Placeholders for voice notes, WhatsApp, AI, and clinical records
