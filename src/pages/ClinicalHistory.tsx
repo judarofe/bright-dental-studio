@@ -178,8 +178,8 @@ export default function ClinicalHistory() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">Historia Odontológica</h1>
-          <p className="page-subtitle">Selección rápida de paciente para registro clínico</p>
+          <h1 className="page-title">Historias Clínicas</h1>
+          <p className="page-subtitle">Gestión de historias clínicas por paciente y especialidad</p>
         </div>
       </div>
 
