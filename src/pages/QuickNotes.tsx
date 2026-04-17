@@ -204,9 +204,10 @@ export default function QuickNotes() {
       <html><head><title>Nota Clínica</title>
       <style>body{font-family:system-ui;padding:40px;max-width:600px;margin:auto}
       h1{font-size:18px;border-bottom:2px solid #333;padding-bottom:8px}
-      .meta{color:#666;font-size:13px;margin:8px 0}.content{margin-top:20px;line-height:1.6;white-space:pre-wrap}</style></head>
+      .meta{color:#666;font-size:13px;margin:8px 0}.content{margin-top:20px;line-height:1.6;white-space:pre-wrap}
+      .brand{color:#999;font-size:11px;margin-top:24px;border-top:1px solid #eee;padding-top:8px}</style></head>
       <body>
-      <h1>Nota Clínica — DentFlow</h1>
+      <h1>Nota Clínica</h1>
       <div class="meta"><strong>Paciente:</strong> ${patient?.name || "—"}</div>
       <div class="meta"><strong>Fecha:</strong> ${nota.fecha}</div>
       <div class="meta"><strong>Profesional:</strong> ${nota.creadoPor}</div>

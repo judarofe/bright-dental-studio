@@ -4,7 +4,7 @@ Updated: now
 # Project Memory
 
 ## Core
-App name: DentFlow. Entirely in Spanish (UI, mock data, metadata).
+App name: ClinicaSuite (logo "C+"). Plataforma clínica multiespecialidad; odontología es fase 1. UI fully in Spanish.
 Desktop-first approach, fully responsive for mobile.
 Medical-premium aesthetic: HSL colors, soft shadows, backdrop-blur.
 Frictionless UX: flows < 3 clicks. Use hover actions & inline validation.
