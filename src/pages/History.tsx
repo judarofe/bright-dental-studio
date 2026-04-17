@@ -146,7 +146,7 @@ export default function History() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Histórico y Versiones</h1>
-          <p className="page-subtitle">Auditoría clínica — todas las historias odontológicas del consultorio</p>
+          <p className="page-subtitle">Auditoría clínica — historias de todas las especialidades del consultorio</p>
         </div>
       </div>
 

@@ -130,13 +130,16 @@ export function AppSidebar() {
           {!collapsed ? (
             <div className="flex items-center gap-2.5">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xs">D+</span>
+                <span className="text-primary-foreground font-bold text-xs">C+</span>
               </div>
-              <span className="font-semibold text-foreground tracking-tight">DentFlow</span>
+              <div className="flex flex-col leading-tight">
+                <span className="font-semibold text-foreground tracking-tight">ClinicaSuite</span>
+                <span className="text-[9px] uppercase tracking-widest text-muted-foreground/60">Plataforma clínica</span>
+              </div>
             </div>
           ) : (
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center mx-auto">
-              <span className="text-primary-foreground font-bold text-xs">D+</span>
+              <span className="text-primary-foreground font-bold text-xs">C+</span>
             </div>
           )}
         </div>

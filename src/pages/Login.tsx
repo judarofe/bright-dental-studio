@@ -82,19 +82,19 @@ export default function Login() {
           </div>
           <div className="space-y-3">
             <h1 className="text-3xl font-bold text-foreground tracking-tight leading-tight">
-              Sistema de Historia Clínica Odontológica
+              Plataforma Clínica Multiespecialidad
             </h1>
             <p className="text-base text-muted-foreground leading-relaxed">
-              Gestione historias clínicas, diagnósticos, odontogramas y tratamientos de manera segura y eficiente.
+              Una base unificada para gestionar pacientes, agenda, historias y pagos en cualquier especialidad. Comienza hoy con odontología.
             </p>
           </div>
           <div className="space-y-3 pt-4">
-            <FeatureItem text="Historias clínicas digitales completas" />
-            <FeatureItem text="Odontograma interactivo con trazabilidad" />
-            <FeatureItem text="Gestión de citas, pagos y notas clínicas" />
+            <FeatureItem text="Historias clínicas por especialidad" />
+            <FeatureItem text="Odontología activa — más áreas próximamente" />
+            <FeatureItem text="Agenda, pagos y notas integrados" />
             <FeatureItem text="Auditoría y versionamiento de registros" />
           </div>
-          <p className="text-xs text-muted-foreground/60 pt-8">DentFlow · Sistema Clínico Odontológico</p>
+          <p className="text-xs text-muted-foreground/60 pt-8">ClinicaSuite · Plataforma clínica multiespecialidad</p>
         </div>
       </div>
 
