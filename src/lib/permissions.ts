@@ -1,5 +1,5 @@
 /**
- * Unified permission system for DentFlow.
+ * Unified permission system for ClinicaSuite.
  *
  * Access = f(roleCategory, specialties)
  *
